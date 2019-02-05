@@ -1,0 +1,9 @@
+# rename to settings.properties
+
+# Settings used to connect to twitch irc chat
+ircServer=irc.chat.twitch.tv
+ircPort=6667
+
+# Change to your twitch channel
+defaultChannel=yourchannel
+bot_nick=bot_nickname
