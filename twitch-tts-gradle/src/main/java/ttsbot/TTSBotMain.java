@@ -11,12 +11,13 @@ public class TTSBotMain {
 
 	public void start() {
 		try {
-//			ui = new SwingUI();
-//			ui.setVisible(true);
 
 			TwitchBot bot;
 			bot = new TwitchBot();
-			bot.start();
+
+			ui = new SwingUI(bot);
+			ui.setVisible(true);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

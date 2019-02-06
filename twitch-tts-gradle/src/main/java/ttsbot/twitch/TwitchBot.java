@@ -1,5 +1,6 @@
 package ttsbot.twitch;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -9,6 +10,7 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.cap.EnableCapHandler;
 import org.pircbotx.delay.StaticDelay;
+import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.ListenerExceptionEvent;
 import org.pircbotx.hooks.events.NoticeEvent;
@@ -21,6 +23,7 @@ import ttsbot.util.Settings;
 import ttsbot.util.Utils;
 
 public class TwitchBot extends ListenerAdapter {
+
 	// irc settings
 	PircBotX pircBot;
 	private String channel;
@@ -57,8 +60,12 @@ public class TwitchBot extends ListenerAdapter {
 	/**
 	 * starts the chat bot and initializes the chatters-list.
 	 */
-	public void start() throws Exception {
-		pircBot.startBot();
+	public void connect() {
+		try {
+			pircBot.startBot();
+		} catch (IOException | IrcException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -220,6 +227,17 @@ public class TwitchBot extends ListenerAdapter {
 			return "";
 		}
 		return message.substring(cmd.length()).trim();
+	}
+
+	public boolean isConnected() {
+		if (pircBot == null) {
+			return false;
+		}
+		return pircBot.isConnected();
+	}
+
+	public GoogleTTS getTts() {
+		return tts;
 	}
 
 }
