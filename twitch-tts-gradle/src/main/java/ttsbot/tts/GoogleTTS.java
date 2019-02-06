@@ -21,7 +21,7 @@ import com.google.protobuf.ByteString;
 import ttsbot.util.Utils;
 
 public class GoogleTTS implements CredentialsProvider {
-	public static final int DEFAULT_VOLUME = 70;
+	public static final int DEFAULT_VOLUME = -1;
 	public static final int DEFAULT_PITCH = 0;
 	private static List<String> knownLanguages = Lists.newArrayList("en", //
 			"de", //
@@ -64,7 +64,7 @@ public class GoogleTTS implements CredentialsProvider {
 	/**
 	 * Sets the Volume in % (more or less), values 0-200 are expected.
 	 */
-	public void setVolume(int volume) {
+	public void setVolume(double volume) {
 		this.volume = volume;
 	}
 
@@ -125,7 +125,7 @@ public class GoogleTTS implements CredentialsProvider {
 	}
 
 	public void syntesizeAndPlay(String text, String langOverride, SsmlVoiceGender genderOverride) throws IOException {
-		if (volume <= 0.1) {
+		if (volume <= -96) {
 			return;
 		}
 		Builder builder = TextToSpeechSettings.newBuilder();
@@ -148,15 +148,10 @@ public class GoogleTTS implements CredentialsProvider {
 					.setSsmlGender(genderOverride != null ? genderOverride : gender) //
 					.build();
 
-			// volume 100 = 0 Db, volume 0 = -5 Db;
-			double db = 5 / 100.0 * volume;
-			db = db - 5;
-			db = Utils.constrainToRange(db, -96, 16);
-			System.out.println("setting volume to " + db);
 			// Select the type of audio file you want returned
 			AudioConfig audioConfig = AudioConfig.newBuilder()
 					.setAudioEncoding(com.google.cloud.texttospeech.v1.AudioEncoding.LINEAR16)//
-					.setVolumeGainDb(db)//
+					.setVolumeGainDb(volume)//
 					.setSpeakingRate(speakingRate) // 0.25 - 4
 					.setPitch(pitch) // --20 - +20
 					.build();
