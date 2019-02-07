@@ -24,7 +24,10 @@ import ttsbot.util.Utils;
 public class GoogleTTS implements CredentialsProvider {
 	public static final int DEFAULT_VOLUME = -1;
 	public static final int DEFAULT_PITCH = 0;
-	private static List<String> knownLanguages = Lists.newArrayList("en", //
+	public static final String DEFAULT_LANG = "de";
+	private static List<String> knownLanguages = Lists.newArrayList("en-US", //
+			"en-GB", //
+			"en-AU", //
 			"de", //
 			"nl", //
 			"fr", //
@@ -38,7 +41,7 @@ public class GoogleTTS implements CredentialsProvider {
 	private double speakingRate = 0;
 	private double pitch = DEFAULT_PITCH;
 	private double volume = DEFAULT_VOLUME;
-	private String lang = "de-CH";
+	private String lang = DEFAULT_LANG;
 	GoogleCredentials credentials;
 	private SsmlVoiceGender gender = SsmlVoiceGender.MALE;
 
@@ -52,6 +55,10 @@ public class GoogleTTS implements CredentialsProvider {
 
 	public List<String> getKnownLanguages() {
 		return knownLanguages;
+	}
+
+	public String getLang() {
+		return lang;
 	}
 
 	/**
@@ -90,12 +97,18 @@ public class GoogleTTS implements CredentialsProvider {
 		if (value == null || value.length() < 2) {
 			return false;
 		}
-		String langCode = value.substring(0, 2);
-		if (knownLanguages.contains(langCode)) {
-			this.lang = value.trim();
-			return true;
+
+		boolean known = false;
+		for (String knownLang : knownLanguages) {
+			if (knownLang.startsWith(value)) {
+				known = true;
+				break;
+			}
 		}
-		return false;
+		if (known) {
+			this.lang = value.trim();
+		}
+		return known;
 	}
 
 	public boolean setGender(String value) {

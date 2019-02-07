@@ -1,10 +1,11 @@
 package ttsbot.ui;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 
 import javax.swing.JButton;
@@ -40,28 +41,11 @@ public class SwingUI extends JFrame {
 	private JTextField textFieldStatus;
 
 	private JButton btnConnect;
-
 	private JSpinner spinnerVolume;
-
 	private JSpinner spinnerPitch;
-
 	private JSpinner spinnerSpeakrate;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					SwingUI ui = new SwingUI(null);
-					ui.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	private JComboBox<String> comboBoxGender;
+	private JComboBox<String> comboBoxLanguage;
 
 	/**
 	 * Set default values.
@@ -76,6 +60,14 @@ public class SwingUI extends JFrame {
 		spinnerPitch.setValue(GoogleTTS.DEFAULT_PITCH);
 		spinnerVolume.setValue(GoogleTTS.DEFAULT_VOLUME);
 		spinnerSpeakrate.setValue(1);
+
+		for (int i = 0; i < comboBoxLanguage.getItemCount(); i++) {
+			final String itemAt = comboBoxLanguage.getItemAt(i);
+			final String botLang = bot.getTts().getLang();
+			if (itemAt.equals(botLang)) {
+				comboBoxLanguage.setSelectedItem(itemAt);
+			}
+		}
 
 		setLocation(1950, -0);
 	}
@@ -211,20 +203,36 @@ public class SwingUI extends JFrame {
 		btnSpeak.setBounds(10, 236, 89, 23);
 		panel.add(btnSpeak);
 
+		comboBoxLanguage = new JComboBox<>();
+		comboBoxLanguage.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					bot.getTts().setLang((String) e.getItem());
+				}
+			}
+		});
+		comboBoxLanguage.setBounds(161, 304, 126, 20);
+		for (String s : bot.getTts().getKnownLanguages()) {
+			comboBoxLanguage.addItem(s);
+		}
+		panel.add(comboBoxLanguage);
+
 		JLabel lblGender = new JLabel("Gender");
-		lblGender.setBounds(10, 307, 98, 14);
+		lblGender.setBounds(10, 332, 98, 14);
 		panel.add(lblGender);
 
-		JComboBox<String> comboBoxGender = new JComboBox<>();
+		comboBoxGender = new JComboBox<>();
 		comboBoxGender.addItem("Male");
 		comboBoxGender.addItem("Female");
 		comboBoxGender.addItem("Neutral");
-		comboBoxGender.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				bot.getTts().setGender((String) comboBoxGender.getSelectedItem());
+		comboBoxGender.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					bot.getTts().setGender((String) e.getItem());
+				}
 			}
 		});
-		comboBoxGender.setBounds(164, 304, 123, 20);
+		comboBoxGender.setBounds(161, 329, 123, 20);
 		panel.add(comboBoxGender);
 
 		JSeparator separator = new JSeparator();
@@ -232,7 +240,7 @@ public class SwingUI extends JFrame {
 		panel.add(separator);
 
 		JLabel lblSpeakrate = new JLabel("Speakrate");
-		lblSpeakrate.setBounds(10, 335, 89, 14);
+		lblSpeakrate.setBounds(10, 360, 89, 14);
 		panel.add(lblSpeakrate);
 
 		spinnerSpeakrate = new JSpinner(new SpinnerNumberModel(1, 0.25, 4, 0.01));
@@ -243,7 +251,7 @@ public class SwingUI extends JFrame {
 
 			}
 		});
-		spinnerSpeakrate.setBounds(164, 332, 64, 20);
+		spinnerSpeakrate.setBounds(161, 357, 64, 20);
 		panel.add(spinnerSpeakrate);
 
 		spinnerPitch = new JSpinner(new SpinnerNumberModel(1, -20, 20, 1));
@@ -254,19 +262,19 @@ public class SwingUI extends JFrame {
 			}
 		});
 
-		spinnerPitch.setBounds(164, 360, 64, 20);
+		spinnerPitch.setBounds(161, 385, 64, 20);
 		panel.add(spinnerPitch);
 
 		JLabel lblPitch = new JLabel("Pitch (-20, +20)");
-		lblPitch.setBounds(10, 363, 108, 14);
+		lblPitch.setBounds(10, 388, 108, 14);
 		panel.add(lblPitch);
 
 		JLabel lblVolume = new JLabel("Volume dB (-96, +16)");
-		lblVolume.setBounds(10, 390, 123, 14);
+		lblVolume.setBounds(10, 415, 123, 14);
 		panel.add(lblVolume);
 
 		spinnerVolume = new JSpinner(new SpinnerNumberModel(0, -96, 16, 0.25));
-		spinnerVolume.setBounds(164, 387, 64, 20);
+		spinnerVolume.setBounds(161, 412, 64, 20);
 		spinnerVolume.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 
@@ -289,6 +297,10 @@ public class SwingUI extends JFrame {
 		lblTtsSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblTtsSettings.setBounds(10, 282, 123, 14);
 		panel.add(lblTtsSettings);
+
+		JLabel lblLanguage = new JLabel("Language");
+		lblLanguage.setBounds(10, 307, 89, 14);
+		panel.add(lblLanguage);
 
 		init();
 	}
