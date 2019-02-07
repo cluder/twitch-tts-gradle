@@ -1,7 +1,8 @@
 package ttsbot.tts;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import com.google.api.gax.core.CredentialsProvider;
@@ -115,9 +116,11 @@ public class GoogleTTS implements CredentialsProvider {
 	 * Creates {@link Credentials} by loading a local .json file.
 	 */
 	private GoogleCredentials loadCredentials(String jsonPath) throws IOException {
-		final InputStream cred = ClassLoader.getSystemResourceAsStream("google-credentials.json");
-		return credentials = GoogleCredentials.fromStream(cred)
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		File file = new File("google-credentials.json");
+		try (FileInputStream fis = new FileInputStream(file)) {
+			return credentials = GoogleCredentials.fromStream(fis)
+					.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		}
 	}
 
 	public void syntesizeAndPlay(String text) throws IOException {

@@ -1,18 +1,18 @@
 package ttsbot.util;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Properties;
 
 public class Settings {
 
 	private static Settings instance = null;
 
-	public static final String CHANNEL_ID = "channel_id";
 	public static String CHANNEL = "defaultChannel";
 	public static String SERVER = "ircServer";
 	public static String PORT = "ircPort";
 	public static String BOT_NICK = "bot_nick";
 	public static String OAUTH_TOKEN = "oauth_irc";
-	public static String OAUTH_TOKEN_EDITOR = "oauth_editor";
 
 	final Properties properties;
 
@@ -36,8 +36,14 @@ public class Settings {
 	 */
 	public Properties load() throws Exception {
 		Properties properties = new Properties();
-		properties.load(ClassLoader.getSystemResourceAsStream("oauth.properties"));
-		properties.load(ClassLoader.getSystemResourceAsStream("settings.properties"));
+		File file = new File("oauth.properties");
+		try (FileInputStream fis = new FileInputStream(file)) {
+			properties.load(fis);
+		}
+		file = new File("settings.properties");
+		try (FileInputStream fis = new FileInputStream(file)) {
+			properties.load(fis);
+		}
 		return properties;
 	}
 
