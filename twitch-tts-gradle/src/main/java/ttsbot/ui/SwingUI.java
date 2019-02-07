@@ -2,6 +2,7 @@ package ttsbot.ui;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
@@ -123,20 +123,18 @@ public class SwingUI extends JFrame {
 		});
 		mnFile.add(mntmExit);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		getContentPane().add(tabbedPane, BorderLayout.CENTER);
+		JPanel panel = new JPanel();
+		getContentPane().add(panel, BorderLayout.CENTER);
 
-		JPanel panelBot = new JPanel();
-		tabbedPane.addTab("Bot", null, panelBot, null);
-		panelBot.setLayout(null);
+		panel.setLayout(null);
 
 		JLabel lblChannel = new JLabel("Channel");
 		lblChannel.setBounds(10, 41, 46, 14);
-		panelBot.add(lblChannel);
+		panel.add(lblChannel);
 
 		textFieldChannel = new JTextField();
 		textFieldChannel.setBounds(62, 38, 138, 20);
-		panelBot.add(textFieldChannel);
+		panel.add(textFieldChannel);
 		textFieldChannel.setColumns(10);
 
 		btnConnect = new JButton("Connect");
@@ -165,15 +163,15 @@ public class SwingUI extends JFrame {
 			}
 		});
 		btnConnect.setBounds(210, 37, 89, 23);
-		panelBot.add(btnConnect);
+		panel.add(btnConnect);
 
 		JLabel lblStatus = new JLabel("Status:");
 		lblStatus.setBounds(10, 67, 46, 14);
-		panelBot.add(lblStatus);
+		panel.add(lblStatus);
 
 		textFieldStatus = new JTextField();
 		textFieldStatus.setBounds(62, 64, 138, 20);
-		panelBot.add(textFieldStatus);
+		panel.add(textFieldStatus);
 		textFieldStatus.setColumns(10);
 
 		JButton btnRefresh = new JButton("Refresh");
@@ -183,20 +181,19 @@ public class SwingUI extends JFrame {
 			}
 		});
 		btnRefresh.setBounds(210, 63, 89, 23);
-		panelBot.add(btnRefresh);
+		panel.add(btnRefresh);
 
-		JPanel panelTTS = new JPanel();
-		tabbedPane.addTab("TTS", null, panelTTS, null);
-		panelTTS.setLayout(null);
+		panel.setLayout(null);
 
 		JTextArea textAreaTTSInput = new JTextArea();
 		textAreaTTSInput.setText("Hallo Welt");
-		textAreaTTSInput.setBounds(10, 31, 333, 55);
-		panelTTS.add(textAreaTTSInput);
+		textAreaTTSInput.setBounds(10, 134, 333, 91);
+		panel.add(textAreaTTSInput);
 
 		JLabel lblTtsinput = new JLabel("TTS Input");
-		lblTtsinput.setBounds(10, 11, 123, 14);
-		panelTTS.add(lblTtsinput);
+		lblTtsinput.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblTtsinput.setBounds(10, 109, 123, 14);
+		panel.add(lblTtsinput);
 
 		JButton btnSpeak = new JButton("Speak");
 		btnSpeak.addActionListener(new ActionListener() {
@@ -211,12 +208,12 @@ public class SwingUI extends JFrame {
 				}
 			}
 		});
-		btnSpeak.setBounds(10, 97, 89, 23);
-		panelTTS.add(btnSpeak);
+		btnSpeak.setBounds(10, 236, 89, 23);
+		panel.add(btnSpeak);
 
 		JLabel lblGender = new JLabel("Gender");
-		lblGender.setBounds(10, 162, 98, 14);
-		panelTTS.add(lblGender);
+		lblGender.setBounds(10, 307, 98, 14);
+		panel.add(lblGender);
 
 		JComboBox<String> comboBoxGender = new JComboBox<>();
 		comboBoxGender.addItem("Male");
@@ -227,16 +224,16 @@ public class SwingUI extends JFrame {
 				bot.getTts().setGender((String) comboBoxGender.getSelectedItem());
 			}
 		});
-		comboBoxGender.setBounds(164, 159, 123, 20);
-		panelTTS.add(comboBoxGender);
+		comboBoxGender.setBounds(164, 304, 123, 20);
+		panel.add(comboBoxGender);
 
 		JSeparator separator = new JSeparator();
-		separator.setBounds(10, 131, 539, 14);
-		panelTTS.add(separator);
+		separator.setBounds(10, 97, 539, 14);
+		panel.add(separator);
 
 		JLabel lblSpeakrate = new JLabel("Speakrate");
-		lblSpeakrate.setBounds(10, 199, 89, 14);
-		panelTTS.add(lblSpeakrate);
+		lblSpeakrate.setBounds(10, 335, 89, 14);
+		panel.add(lblSpeakrate);
 
 		spinnerSpeakrate = new JSpinner(new SpinnerNumberModel(1, 0.25, 4, 0.01));
 		spinnerSpeakrate.addChangeListener(new ChangeListener() {
@@ -246,8 +243,8 @@ public class SwingUI extends JFrame {
 
 			}
 		});
-		spinnerSpeakrate.setBounds(164, 196, 64, 20);
-		panelTTS.add(spinnerSpeakrate);
+		spinnerSpeakrate.setBounds(164, 332, 64, 20);
+		panel.add(spinnerSpeakrate);
 
 		spinnerPitch = new JSpinner(new SpinnerNumberModel(1, -20, 20, 1));
 		spinnerPitch.addChangeListener(new ChangeListener() {
@@ -257,19 +254,19 @@ public class SwingUI extends JFrame {
 			}
 		});
 
-		spinnerPitch.setBounds(164, 227, 64, 20);
-		panelTTS.add(spinnerPitch);
+		spinnerPitch.setBounds(164, 360, 64, 20);
+		panel.add(spinnerPitch);
 
 		JLabel lblPitch = new JLabel("Pitch (-20, +20)");
-		lblPitch.setBounds(10, 233, 108, 14);
-		panelTTS.add(lblPitch);
+		lblPitch.setBounds(10, 363, 108, 14);
+		panel.add(lblPitch);
 
 		JLabel lblVolume = new JLabel("Volume dB (-96, +16)");
-		lblVolume.setBounds(10, 267, 123, 14);
-		panelTTS.add(lblVolume);
+		lblVolume.setBounds(10, 390, 123, 14);
+		panel.add(lblVolume);
 
 		spinnerVolume = new JSpinner(new SpinnerNumberModel(0, -96, 16, 0.25));
-		spinnerVolume.setBounds(164, 264, 64, 20);
+		spinnerVolume.setBounds(164, 387, 64, 20);
 		spinnerVolume.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 
@@ -277,7 +274,21 @@ public class SwingUI extends JFrame {
 				bot.getTts().setVolume(value.doubleValue());
 			}
 		});
-		panelTTS.add(spinnerVolume);
+		panel.add(spinnerVolume);
+
+		JLabel labelTwitchSettings = new JLabel("Twitch Settings");
+		labelTwitchSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
+		labelTwitchSettings.setBounds(10, 11, 123, 14);
+		panel.add(labelTwitchSettings);
+
+		JSeparator separator_1 = new JSeparator();
+		separator_1.setBounds(10, 273, 539, 14);
+		panel.add(separator_1);
+
+		JLabel lblTtsSettings = new JLabel("TTS Settings");
+		lblTtsSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblTtsSettings.setBounds(10, 282, 123, 14);
+		panel.add(lblTtsSettings);
 
 		init();
 	}
