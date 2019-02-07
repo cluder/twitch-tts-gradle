@@ -99,7 +99,7 @@ public class SwingUI extends JFrame {
 
 		setTitle("Twitch TTS Bot");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 640, 502);
+		setBounds(100, 100, 396, 513);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -179,7 +179,7 @@ public class SwingUI extends JFrame {
 
 		JTextArea textAreaTTSInput = new JTextArea();
 		textAreaTTSInput.setText("Hallo Welt");
-		textAreaTTSInput.setBounds(10, 134, 333, 91);
+		textAreaTTSInput.setBounds(10, 134, 360, 91);
 		panel.add(textAreaTTSInput);
 
 		JLabel lblTtsinput = new JLabel("TTS Input");
@@ -236,11 +236,11 @@ public class SwingUI extends JFrame {
 		panel.add(comboBoxGender);
 
 		JSeparator separator = new JSeparator();
-		separator.setBounds(10, 97, 539, 14);
+		separator.setBounds(10, 97, 360, 14);
 		panel.add(separator);
 
-		JLabel lblSpeakrate = new JLabel("Speakrate");
-		lblSpeakrate.setBounds(10, 360, 89, 14);
+		JLabel lblSpeakrate = new JLabel("Speakrate (0.25, 4.0)");
+		lblSpeakrate.setBounds(10, 360, 123, 14);
 		panel.add(lblSpeakrate);
 
 		spinnerSpeakrate = new JSpinner(new SpinnerNumberModel(1, 0.25, 4, 0.01));
@@ -290,7 +290,7 @@ public class SwingUI extends JFrame {
 		panel.add(labelTwitchSettings);
 
 		JSeparator separator_1 = new JSeparator();
-		separator_1.setBounds(10, 273, 539, 14);
+		separator_1.setBounds(10, 273, 360, 14);
 		panel.add(separator_1);
 
 		JLabel lblTtsSettings = new JLabel("TTS Settings");
