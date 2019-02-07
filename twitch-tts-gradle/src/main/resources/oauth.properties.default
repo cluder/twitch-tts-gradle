@@ -3,5 +3,3 @@
 # oauth token used to connect to twitch irc service
 # oauth_irc=yourtoken
 
-# oauth token with editor permissions to set stream status (game, title)
-# oauth_editor=token
