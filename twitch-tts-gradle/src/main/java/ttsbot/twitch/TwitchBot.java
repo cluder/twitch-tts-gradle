@@ -39,10 +39,12 @@ public class TwitchBot extends ListenerAdapter {
 
 		channel = Settings.get().get(Settings.CHANNEL);
 
+		final String serverPassword = Settings.get().get(Settings.OAUTH_TOKEN);
+
 		Configuration config = new Configuration.Builder() //
 				.setName("TwitchChatBot") //
 				.addServer("irc.chat.twitch.tv", 6667) //
-				.setServerPassword(Settings.get().get(Settings.OAUTH_TOKEN)) //
+				.setServerPassword(serverPassword) //
 				.addListener(this) //
 				.addAutoJoinChannel("#" + channel) //
 				.addCapHandler(new EnableCapHandler("twitch.tv/membership")) // enable join/part
