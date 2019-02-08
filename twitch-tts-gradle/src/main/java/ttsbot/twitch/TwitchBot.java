@@ -134,7 +134,7 @@ public class TwitchBot extends ListenerAdapter {
 			String parsed = msgWithoutCommand.trim();
 			int parseInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
 			final boolean result = tts.setPitch(parseInt);
-			if (!result) {
+			if (result) {
 				sendMsg("pitch value has to be between -20 and +20");
 			}
 		}

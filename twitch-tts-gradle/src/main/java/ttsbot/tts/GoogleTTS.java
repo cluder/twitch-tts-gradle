@@ -129,7 +129,7 @@ public class GoogleTTS implements CredentialsProvider {
 	 * Creates {@link Credentials} by loading a local .json file.
 	 */
 	private GoogleCredentials loadCredentials(String jsonPath) throws IOException {
-		File file = new File("google-credentials.json");
+		File file = new File(jsonPath);
 		try (FileInputStream fis = new FileInputStream(file)) {
 			return credentials = GoogleCredentials.fromStream(fis)
 					.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
