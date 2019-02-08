@@ -69,7 +69,7 @@ public class SwingUI extends JFrame {
 			}
 		}
 
-		setLocation(1950, -0);
+//		setLocation(1950, -0);
 	}
 
 	private void setConnectionState() {
