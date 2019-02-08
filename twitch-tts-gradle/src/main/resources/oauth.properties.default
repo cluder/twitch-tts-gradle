@@ -1,5 +1,7 @@
 # rename to oauth.properties
 #
 # oauth token used to connect to twitch irc service
+# https://twitchapps.com/tmi/
+#
 # oauth_irc=yourtoken
 
