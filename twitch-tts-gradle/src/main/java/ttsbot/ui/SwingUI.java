@@ -29,6 +29,9 @@ import ttsbot.tts.GoogleTTS;
 import ttsbot.twitch.TwitchBot;
 import ttsbot.util.Settings;
 
+/**
+ * Swing UI.<br>
+ */
 public class SwingUI extends JFrame {
 	TwitchBot bot;
 
@@ -69,7 +72,6 @@ public class SwingUI extends JFrame {
 			}
 		}
 
-//		setLocation(1950, -0);
 	}
 
 	private void setConnectionState() {

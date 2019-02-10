@@ -21,10 +21,15 @@ import com.google.protobuf.ByteString;
 
 import ttsbot.util.Utils;
 
+/**
+ * Helper for Google TTS Api Calls.<br>
+ */
 public class GoogleTTS implements CredentialsProvider {
 	public static final int DEFAULT_VOLUME = -1;
 	public static final int DEFAULT_PITCH = 0;
 	public static final String DEFAULT_LANG = "de";
+
+	// known TTS öanguages
 	private static List<String> knownLanguages = Lists.newArrayList("en-US", //
 			"en-GB", //
 			"en-AU", //
@@ -38,12 +43,16 @@ public class GoogleTTS implements CredentialsProvider {
 			"es", //
 			"sv", //
 			"tr");
+
+	// TTS settings
 	private double speakingRate = 0;
 	private double pitch = DEFAULT_PITCH;
 	private double volume = DEFAULT_VOLUME;
 	private String lang = DEFAULT_LANG;
-	GoogleCredentials credentials;
 	private SsmlVoiceGender gender = SsmlVoiceGender.MALE;
+
+	// google API credentials
+	GoogleCredentials credentials;
 
 	public GoogleTTS() {
 		try {
@@ -136,14 +145,22 @@ public class GoogleTTS implements CredentialsProvider {
 		}
 	}
 
+	/**
+	 * see {@link #syntesizeAndPlay(String, String, SsmlVoiceGender)}
+	 */
 	public void syntesizeAndPlay(String text) throws IOException {
 		syntesizeAndPlay(text, null, null);
 	}
 
+	/**
+	 * Calls google's text-to-speech with the given text and plays the created wav
+	 * directly.<br>
+	 */
 	public void syntesizeAndPlay(String text, String langOverride, SsmlVoiceGender genderOverride) throws IOException {
 		if (volume <= -96) {
 			return;
 		}
+
 		Builder builder = TextToSpeechSettings.newBuilder();
 		builder.setCredentialsProvider(this);
 		TextToSpeechSettings settings = builder.build();
@@ -180,6 +197,7 @@ public class GoogleTTS implements CredentialsProvider {
 			// Get the audio contents from the response
 			ByteString audioContents = response.getAudioContent();
 
+			// play wav
 			Utils.playWAV(audioContents);
 		} catch (Throwable e) {
 			e.printStackTrace();

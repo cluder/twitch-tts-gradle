@@ -17,16 +17,28 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.google.protobuf.ByteString;
 
+/**
+ * Various helper methods.
+ */
 public class Utils {
 
+	/**
+	 * Clamps the given value to the min max range.
+	 */
 	public static int constrainToRange(int value, int min, int max) {
 		return Math.max(min, Math.min(max, value));
 	}
 
+	/**
+	 * Clamps the given value to the min max range.
+	 */
 	public static double constrainToRange(double value, double min, double max) {
 		return Math.max(min, Math.min(max, value));
 	}
 
+	/**
+	 * Plays a .wav audiostream.
+	 */
 	public static void playAudio(AudioInputStream audioInputStream) throws LineUnavailableException, IOException {
 
 		Line line;
@@ -51,6 +63,9 @@ public class Utils {
 		clip.start();
 	}
 
+	/**
+	 * Loads the given .wav file and plays it.
+	 */
 	public static void playWAV(String pathToWav) {
 		File file = new File(pathToWav);
 		try (FileInputStream fileInputStream = new FileInputStream(file);
@@ -62,8 +77,10 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Plays the given .wav content.
+	 */
 	public static void playWAV(ByteString audioContents) {
-
 		try (InputStream newInputStream = audioContents.newInput();
 				AudioInputStream ais = AudioSystem.getAudioInputStream(newInputStream)) {
 			playAudio(ais);
@@ -72,5 +89,4 @@ public class Utils {
 			e.printStackTrace();
 		}
 	}
-
 }

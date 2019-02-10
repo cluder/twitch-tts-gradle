@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+/**
+ * Sinlgeton helper to read settings from the settings.properties.
+ */
 public class Settings {
 
 	private static Settings instance = null;

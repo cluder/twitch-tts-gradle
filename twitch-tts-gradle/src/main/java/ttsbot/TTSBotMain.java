@@ -3,6 +3,9 @@ package ttsbot;
 import ttsbot.twitch.TwitchBot;
 import ttsbot.ui.SwingUI;
 
+/**
+ * Main class which starts the twitch bot and UI.
+ */
 public class TTSBotMain {
 	SwingUI ui;
 
