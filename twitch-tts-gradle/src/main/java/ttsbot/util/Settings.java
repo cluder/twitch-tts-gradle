@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Sinlgeton helper to read settings from the settings.properties.
+ * Singleton helper to read settings from the settings.properties.
  */
 public class Settings {
+	private final static Logger log = LoggerFactory.getLogger(Settings.class);
 
 	private static Settings instance = null;
 
@@ -28,7 +32,7 @@ public class Settings {
 			try {
 				instance = new Settings();
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e.getMessage(), e);
 			}
 		}
 		return instance;
