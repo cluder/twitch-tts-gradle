@@ -16,6 +16,8 @@ import org.pircbotx.hooks.events.NoticeEvent;
 import org.pircbotx.hooks.events.PingEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ttsbot.tts.GoogleTTS;
 import ttsbot.util.Settings;
@@ -25,6 +27,7 @@ import ttsbot.util.Utils;
  * Chat bot, implements PircBotx's {@link ListenerAdapter}.
  */
 public class TwitchBot extends ListenerAdapter {
+	private final static Logger log = LoggerFactory.getLogger(TwitchBot.class);
 
 	PircBotX pircBot;
 	GoogleTTS tts;
@@ -151,7 +154,7 @@ public class TwitchBot extends ListenerAdapter {
 
 				sendMsg("Volume set to " + newVolume + "%");
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e.getMessage(), e);
 				sendMsg("Exception:" + e.getStackTrace()[0] + " - " + e.getMessage());
 			}
 		}
@@ -160,7 +163,7 @@ public class TwitchBot extends ListenerAdapter {
 			try {
 				tts.syntesizeAndPlay(msgWithoutCommand);
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e.getMessage(), e);
 				sendMsg("Exception " + e.getStackTrace()[0] + " - " + e.getMessage());
 			}
 		}
@@ -199,7 +202,7 @@ public class TwitchBot extends ListenerAdapter {
 		try {
 			pircBot.startBot();
 		} catch (IOException | IrcException e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 	}
 

@@ -18,12 +18,16 @@ repositories {
 }
 
 dependencies {
-
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compile 'org.apache.commons:commons-math3:3.6.1'
     compile 'com.google.cloud:google-cloud-texttospeech:0.73.0-beta'
+    
+    // we need a custom pircbotx build, which uses the newer guava libraries
     compile 'org.pircbotx:pircbotx:2.2-CLU'
     compile 'org.pircbotx:pircbotx:2.2-CLU-sources'
+    
+    // loggin
+    compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.1'
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:23.5-jre'

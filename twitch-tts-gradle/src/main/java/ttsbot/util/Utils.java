@@ -15,12 +15,16 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.protobuf.ByteString;
 
 /**
  * Various helper methods.
  */
 public class Utils {
+	private final static Logger log = LoggerFactory.getLogger(Utils.class);
 
 	/**
 	 * Clamps the given value to the min max range.
@@ -73,7 +77,7 @@ public class Utils {
 				AudioInputStream ais = AudioSystem.getAudioInputStream(bufferedInputStream)) {
 			playAudio(ais);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -86,7 +90,7 @@ public class Utils {
 			playAudio(ais);
 
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 	}
 }

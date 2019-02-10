@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -25,11 +28,13 @@ import ttsbot.util.Utils;
  * Helper for Google TTS Api Calls.<br>
  */
 public class GoogleTTS implements CredentialsProvider {
+	private final static Logger log = LoggerFactory.getLogger(GoogleTTS.class);
+
 	public static final int DEFAULT_VOLUME = -1;
 	public static final int DEFAULT_PITCH = 0;
 	public static final String DEFAULT_LANG = "de";
 
-	// known TTS öanguages
+	// known TTS languages
 	private static List<String> knownLanguages = Lists.newArrayList("en-US", //
 			"en-GB", //
 			"en-AU", //
@@ -58,7 +63,7 @@ public class GoogleTTS implements CredentialsProvider {
 		try {
 			this.credentials = loadCredentials("google-credentials.json");
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.warn(e.getMessage(), e);
 		}
 	}
 
@@ -200,7 +205,7 @@ public class GoogleTTS implements CredentialsProvider {
 			// play wav
 			Utils.playWAV(audioContents);
 		} catch (Throwable e) {
-			e.printStackTrace();
+			log.warn(e.getMessage(), e);
 		}
 	}
 

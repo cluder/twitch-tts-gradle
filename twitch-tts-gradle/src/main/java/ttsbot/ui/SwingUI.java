@@ -25,6 +25,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ttsbot.tts.GoogleTTS;
 import ttsbot.twitch.TwitchBot;
 import ttsbot.util.Settings;
@@ -33,6 +36,8 @@ import ttsbot.util.Settings;
  * Swing UI.<br>
  */
 public class SwingUI extends JFrame {
+	private final static Logger log = LoggerFactory.getLogger(SwingUI.class);
+
 	TwitchBot bot;
 
 	Thread pircBotThread;
@@ -198,7 +203,7 @@ public class SwingUI extends JFrame {
 						bot.getTts().syntesizeAndPlay(text);
 					}
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					log.error(e1.getMessage(), e);
 				}
 			}
 		});
