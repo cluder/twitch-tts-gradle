@@ -3,7 +3,6 @@ package ttsbot.twitch;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -22,23 +21,20 @@ import ttsbot.tts.GoogleTTS;
 import ttsbot.util.Settings;
 import ttsbot.util.Utils;
 
+/**
+ * Chat bot, implements PircBotx's {@link ListenerAdapter}.
+ */
 public class TwitchBot extends ListenerAdapter {
 
-	// irc settings
 	PircBotX pircBot;
-	private String channel;
-
 	GoogleTTS tts;
-
-	Random r;
+	private String channel;
 
 	public TwitchBot() throws UnsupportedEncodingException {
 
-		r = new Random();
 		tts = new GoogleTTS();
 
 		channel = Settings.get().get(Settings.CHANNEL);
-
 		final String serverPassword = Settings.get().get(Settings.OAUTH_TOKEN);
 
 		Configuration config = new Configuration.Builder() //
@@ -59,25 +55,6 @@ public class TwitchBot extends ListenerAdapter {
 
 	}
 
-	/**
-	 * starts the chat bot and initializes the chatters-list.
-	 */
-	public void connect() {
-		try {
-			pircBot.startBot();
-		} catch (IOException | IrcException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * The command will always be the first word of the message.
-	 */
-	private String getCommandFromMessage(String message) {
-		String[] msgParts = message.split(" ");
-		return msgParts[0];
-	}
-
 	@Override
 	public void onNotice(NoticeEvent event) throws Exception {
 		super.onNotice(event);
@@ -92,7 +69,8 @@ public class TwitchBot extends ListenerAdapter {
 	}
 
 	/**
-	 * PircBotx will return the exact message sent and not the raw line
+	 * Called for every message in the chat.<br>
+	 * Calls {@link #parseMessage} to check for commands.
 	 */
 	@Override
 	public void onGenericMessage(GenericMessageEvent event) throws Exception {
@@ -111,10 +89,35 @@ public class TwitchBot extends ListenerAdapter {
 		super.onMessage(event);
 	}
 
+	@Override
+	public void onUserList(UserListEvent event) throws Exception {
+		super.onUserList(event);
+	}
+
+	@Override
+	public void onListenerException(ListenerExceptionEvent event) throws Exception {
+
+	}
+
+	/**
+	 * Helper to send a message to the current channel.
+	 */
 	protected void sendMsg(String msg) {
 		pircBot.sendIRC().message("#" + channel, msg);
 	}
 
+	/**
+	 * Returns the command, from a message. The command will always be the first
+	 * word of the message.
+	 */
+	private String getCommandFromMessage(String message) {
+		String[] msgParts = message.split(" ");
+		return msgParts[0];
+	}
+
+	/**
+	 * Parses the message for commands.
+	 */
 	private void parseMessage(String username, boolean isMod, String channel, String message, String command) {
 		if (isIgnoredUser(username)) {
 			return;
@@ -154,7 +157,6 @@ public class TwitchBot extends ListenerAdapter {
 		}
 
 		if (command.equals("!speak") || command.equals("!s")) {
-			// tts
 			try {
 				tts.syntesizeAndPlay(msgWithoutCommand);
 			} catch (Exception e) {
@@ -187,8 +189,34 @@ public class TwitchBot extends ListenerAdapter {
 				sendMsg("Speak rate set to:" + msgWithoutCommand);
 			}
 		}
+
 	}
 
+	/**
+	 * starts the chat bot and initializes the chatters-list.
+	 */
+	public void connect() {
+		try {
+			pircBot.startBot();
+		} catch (IOException | IrcException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * returns the message in lowercases and trimmed.
+	 */
+	private String lowerTrimmed(String message) {
+		if (message == null) {
+			return message;
+		}
+		return message.toLowerCase().trim();
+	}
+
+	/**
+	 * returns true, if we should ignore this user.<br>
+	 * ignored users wont trigger commands.
+	 */
 	private boolean isIgnoredUser(String username) {
 		if (username == null) {
 			return false;
@@ -199,23 +227,6 @@ public class TwitchBot extends ListenerAdapter {
 		}
 
 		return false;
-	}
-
-	@Override
-	public void onUserList(UserListEvent event) throws Exception {
-		super.onUserList(event);
-	}
-
-	@Override
-	public void onListenerException(ListenerExceptionEvent event) throws Exception {
-
-	}
-
-	private String lowerTrimmed(String message) {
-		if (message == null) {
-			return message;
-		}
-		return message.toLowerCase().trim();
 	}
 
 	/**
