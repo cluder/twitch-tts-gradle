@@ -21,6 +21,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -106,7 +107,7 @@ public class SwingUI extends JFrame {
 
 		setTitle("Twitch TTS Bot");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 396, 513);
+		setBounds(100, 100, 454, 510);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -186,7 +187,7 @@ public class SwingUI extends JFrame {
 
 		JTextArea textAreaTTSInput = new JTextArea();
 		textAreaTTSInput.setText("Hallo Welt");
-		textAreaTTSInput.setBounds(10, 134, 360, 91);
+		textAreaTTSInput.setBounds(10, 134, 418, 91);
 		panel.add(textAreaTTSInput);
 
 		JLabel lblTtsinput = new JLabel("TTS Input");
@@ -243,7 +244,7 @@ public class SwingUI extends JFrame {
 		panel.add(comboBoxGender);
 
 		JSeparator separator = new JSeparator();
-		separator.setBounds(10, 97, 360, 14);
+		separator.setBounds(10, 97, 418, 14);
 		panel.add(separator);
 
 		JLabel lblSpeakrate = new JLabel("Speakrate (0.25, 4.0)");
@@ -297,7 +298,7 @@ public class SwingUI extends JFrame {
 		panel.add(labelTwitchSettings);
 
 		JSeparator separator_1 = new JSeparator();
-		separator_1.setBounds(10, 273, 360, 14);
+		separator_1.setBounds(10, 270, 418, 14);
 		panel.add(separator_1);
 
 		JLabel lblTtsSettings = new JLabel("TTS Settings");
@@ -308,6 +309,40 @@ public class SwingUI extends JFrame {
 		JLabel lblLanguage = new JLabel("Language");
 		lblLanguage.setBounds(10, 307, 89, 14);
 		panel.add(lblLanguage);
+
+		JLabel lblCommands = new JLabel("Chat Commands");
+		lblCommands.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblCommands.setBounds(324, 282, 117, 14);
+		panel.add(lblCommands);
+
+		JLabel lblCmdLang = new JLabel("!lang");
+		lblCmdLang.setBounds(324, 307, 77, 14);
+		panel.add(lblCmdLang);
+
+		JLabel lblgender = new JLabel("!gender");
+		lblgender.setBounds(324, 332, 77, 14);
+		panel.add(lblgender);
+
+		JLabel lblCmdSpeakrate = new JLabel("!speakrate");
+		lblCmdSpeakrate.setBounds(324, 360, 77, 14);
+		panel.add(lblCmdSpeakrate);
+
+		JLabel lblCmdPitch = new JLabel("!pitch");
+		lblCmdPitch.setBounds(324, 388, 77, 14);
+		panel.add(lblCmdPitch);
+
+		JLabel lblCmdVolume = new JLabel("!volume");
+		lblCmdVolume.setBounds(324, 415, 77, 14);
+		panel.add(lblCmdVolume);
+
+		JSeparator separator_3 = new JSeparator();
+		separator_3.setBounds(302, 290, -10, 159);
+		panel.add(separator_3);
+
+		JSeparator separator_2 = new JSeparator();
+		separator_2.setOrientation(SwingConstants.VERTICAL);
+		separator_2.setBounds(305, 279, 9, 161);
+		panel.add(separator_2);
 
 		init();
 	}
