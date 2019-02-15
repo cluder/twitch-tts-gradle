@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -24,6 +26,7 @@ import com.google.protobuf.ByteString;
  * Various helper methods.
  */
 public class Utils {
+	static Semaphore lock = new Semaphore(1);
 	private final static Logger log = LoggerFactory.getLogger(Utils.class);
 
 	/**
@@ -44,27 +47,33 @@ public class Utils {
 	 * Plays a .wav audiostream.
 	 */
 	public static void playAudio(AudioInputStream audioInputStream) throws LineUnavailableException, IOException {
+		try {
+			lock.tryAcquire(30, TimeUnit.SECONDS);
+			Line line;
+			line = AudioSystem.getLine(new Line.Info(Clip.class));
 
-		Line line;
-		line = AudioSystem.getLine(new Line.Info(Clip.class));
+			Clip clip = (Clip) line;
 
-		Clip clip = (Clip) line;
+			clip.open(audioInputStream);
+			clip.addLineListener(new LineListener() {
 
-		clip.open(audioInputStream);
-		clip.addLineListener(new LineListener() {
-
-			@Override
-			public void update(LineEvent le) {
-				LineEvent.Type type = le.getType();
-				if (type == LineEvent.Type.OPEN) {
-				} else if (type == LineEvent.Type.CLOSE) {
-				} else if (type == LineEvent.Type.START) {
-				} else if (type == LineEvent.Type.STOP) {
-					clip.close();
+				@Override
+				public void update(LineEvent le) {
+					LineEvent.Type type = le.getType();
+					if (type == LineEvent.Type.OPEN) {
+					} else if (type == LineEvent.Type.CLOSE) {
+					} else if (type == LineEvent.Type.START) {
+					} else if (type == LineEvent.Type.STOP) {
+						clip.close();
+						lock.release();
+					}
 				}
-			}
-		});
-		clip.start();
+			});
+			clip.start();
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+			lock.release();
+		}
 	}
 
 	/**

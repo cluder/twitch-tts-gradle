@@ -35,10 +35,10 @@ public class GoogleTTS implements CredentialsProvider {
 	public static final String DEFAULT_LANG = "de";
 
 	// known TTS languages
-	private static List<String> knownLanguages = Lists.newArrayList("en-US", //
+	private static List<String> knownLanguages = Lists.newArrayList("de", //
 			"en-GB", //
 			"en-AU", //
-			"de", //
+			"en-US", //
 			"nl", //
 			"fr", //
 			"it", //
