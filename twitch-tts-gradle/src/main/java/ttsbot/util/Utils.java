@@ -26,8 +26,9 @@ import com.google.protobuf.ByteString;
  * Various helper methods.
  */
 public class Utils {
-	static Semaphore lock = new Semaphore(1);
 	private final static Logger log = LoggerFactory.getLogger(Utils.class);
+
+	private static Semaphore lock = new Semaphore(1);
 
 	/**
 	 * Clamps the given value to the min max range.
