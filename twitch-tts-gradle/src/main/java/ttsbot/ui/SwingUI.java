@@ -285,7 +285,6 @@ public class SwingUI extends JFrame {
 		spinnerVolume.setBounds(161, 412, 64, 20);
 		spinnerVolume.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-
 				final Number value = (Number) spinnerVolume.getValue();
 				bot.getTts().setVolume(value.doubleValue());
 			}

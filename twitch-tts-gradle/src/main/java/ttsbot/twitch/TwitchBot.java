@@ -136,30 +136,86 @@ public class TwitchBot extends ListenerAdapter {
 		command = lowerTrimmed(command);
 		String msgWithoutCommand = getMsgWithoutCommand(message, command);
 
+		// pitch
 		if (command.equals("!pitch")) {
-			String parsed = msgWithoutCommand.trim();
-			int parseInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
-			final boolean result = tts.setPitch(parseInt);
-			if (result) {
-				sendMsg("pitch value has to be between -20 and +20");
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current pitch: " + tts.getPitch());
+			} else {
+				String parsed = msgWithoutCommand;
+				int parseInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
+				final boolean result = tts.setPitch(parseInt);
+				if (result) {
+					sendMsg("pitch value has to be between -20 and +20");
+				}
 			}
 		}
 
+		// volume
 		if (command.equals("!vol")) {
-			try {
-				String parsed = msgWithoutCommand.trim();
-				double value = GoogleTTS.DEFAULT_VOLUME;
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current volume: " + tts.getVolume());
+			} else {
+
 				try {
-					value = Double.parseDouble(parsed);
+					double value = GoogleTTS.DEFAULT_VOLUME;
+					try {
+						value = Double.parseDouble(msgWithoutCommand);
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+					}
+					final boolean success = tts.setVolume(value);
+					if (success) {
+						sendMsg("Volume set to " + value + " dB");
+					} else {
+						sendMsg("Volume has to be between -96 and +16");
+					}
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
+					sendMsg("Exception:" + e.getStackTrace()[0] + " - " + e.getMessage());
 				}
-				tts.setVolume(value);
+			}
+		}
 
-				sendMsg("Volume set to " + value + "db");
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-				sendMsg("Exception:" + e.getStackTrace()[0] + " - " + e.getMessage());
+		if (command.equals("!lang")) {
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current language: " + tts.getLang());
+			} else {
+				boolean success = tts.setLang(msgWithoutCommand);
+				if (success) {
+					sendMsg("Language set to:" + msgWithoutCommand);
+				} else {
+					sendMsg("Language not known, try:" + tts.getKnownLanguages());
+				}
+			}
+		}
+
+		// gender
+		if (command.equals("!gender")) {
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current gender: " + tts.getGender());
+			} else {
+				boolean success = tts.setGender(msgWithoutCommand);
+				if (success) {
+					sendMsg("Gender set to:" + msgWithoutCommand);
+				} else {
+					sendMsg("Gender must be any of: female/male/neutral");
+				}
+			}
+		}
+
+		// speakrate
+		if (command.equals("!speakrate")) {
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current speakrate: " + tts.getSpeakrate());
+			} else {
+				double parsedDouble = Double.parseDouble(msgWithoutCommand);
+				double newRate = Utils.constrainToRange(parsedDouble, 0.25, 4);
+				boolean success = tts.setSpeakingRate(newRate);
+				if (success) {
+					sendMsg("Speakrate set to:" + msgWithoutCommand);
+				} else {
+					sendMsg("Speakrate has to be between -20 and +20");
+				}
 			}
 		}
 
@@ -169,31 +225,6 @@ public class TwitchBot extends ListenerAdapter {
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				sendMsg("Exception " + e.getStackTrace()[0] + " - " + e.getMessage());
-			}
-		}
-
-		if (command.equals("!lang")) {
-			boolean success = tts.setLang(msgWithoutCommand);
-			if (success) {
-				sendMsg("Language set to:" + msgWithoutCommand);
-			} else {
-				sendMsg("Language not known, try:" + tts.getKnownLanguages());
-			}
-		}
-
-		if (command.equals("!gender")) {
-			boolean success = tts.setGender(msgWithoutCommand);
-			if (success) {
-				sendMsg("Gender set to:" + msgWithoutCommand);
-			}
-		}
-
-		if (command.equals("!speakrate")) {
-			double parsedDouble = Double.parseDouble(msgWithoutCommand);
-			double newRate = Utils.constrainToRange(parsedDouble, 0.25, 4);
-			boolean success = tts.setSpeakingRate(newRate);
-			if (success) {
-				sendMsg("Speak rate set to:" + msgWithoutCommand);
 			}
 		}
 
