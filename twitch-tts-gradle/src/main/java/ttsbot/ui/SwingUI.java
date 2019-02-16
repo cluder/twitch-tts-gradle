@@ -331,7 +331,7 @@ public class SwingUI extends JFrame {
 		lblCmdPitch.setBounds(324, 388, 77, 14);
 		panel.add(lblCmdPitch);
 
-		JLabel lblCmdVolume = new JLabel("!volume");
+		JLabel lblCmdVolume = new JLabel("!vol");
 		lblCmdVolume.setBounds(324, 415, 77, 14);
 		panel.add(lblCmdVolume);
 

@@ -145,14 +145,18 @@ public class TwitchBot extends ListenerAdapter {
 			}
 		}
 
-		if (command.equals("!volume")) {
+		if (command.equals("!vol")) {
 			try {
 				String parsed = msgWithoutCommand.trim();
-				int parseInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_VOLUME);
-				int newVolume = Utils.constrainToRange(parseInt, 0, 400);
-				tts.setVolume(newVolume);
+				double value = GoogleTTS.DEFAULT_VOLUME;
+				try {
+					value = Double.parseDouble(parsed);
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+				tts.setVolume(value);
 
-				sendMsg("Volume set to " + newVolume + "%");
+				sendMsg("Volume set to " + value + "db");
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				sendMsg("Exception:" + e.getStackTrace()[0] + " - " + e.getMessage());
