@@ -30,7 +30,7 @@ import ttsbot.util.Utils;
 public class GoogleTTS implements CredentialsProvider {
 	private final static Logger log = LoggerFactory.getLogger(GoogleTTS.class);
 
-	public static final int DEFAULT_VOLUME = -1;
+	public static final int DEFAULT_VOLUME = 0;
 	public static final int DEFAULT_PITCH = 0;
 	public static final String DEFAULT_LANG = "de";
 
@@ -75,6 +75,10 @@ public class GoogleTTS implements CredentialsProvider {
 		return lang;
 	}
 
+	public double getVolume() {
+		return volume;
+	}
+
 	/**
 	 * Returns google api credentials for {@link CredentialsProvider}
 	 */
@@ -86,8 +90,12 @@ public class GoogleTTS implements CredentialsProvider {
 	/**
 	 * Sets the Volume in % (more or less), values 0-200 are expected.
 	 */
-	public void setVolume(double volume) {
-		this.volume = volume;
+	public boolean setVolume(double volume) {
+		if (volume >= -96 && volume <= 16) {
+			this.volume = volume;
+			return true;
+		}
+		return false;
 	}
 
 	public boolean setSpeakingRate(double speakingRate) {
@@ -207,6 +215,18 @@ public class GoogleTTS implements CredentialsProvider {
 		} catch (Throwable e) {
 			log.warn(e.getMessage(), e);
 		}
+	}
+
+	public String getGender() {
+		return gender.toString().toLowerCase();
+	}
+
+	public double getSpeakrate() {
+		return speakingRate;
+	}
+
+	public double getPitch() {
+		return pitch;
 	}
 
 }
