@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,11 @@ import com.google.cloud.texttospeech.v1.TextToSpeechSettings;
 import com.google.cloud.texttospeech.v1.TextToSpeechSettings.Builder;
 import com.google.cloud.texttospeech.v1.Voice;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
+import com.google.cloud.translate.Language;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.Translate.TranslateOption;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 
@@ -91,6 +97,15 @@ public class GoogleTTS implements CredentialsProvider {
 
 	public List<String> getKnownLanguages() {
 		return knownLanguages;
+	}
+
+	public boolean isKnownLanguage(String dst) {
+		for (String lang : knownLanguages) {
+			if (lang.startsWith(dst)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public String getLang() {
@@ -229,8 +244,7 @@ public class GoogleTTS implements CredentialsProvider {
 					.build();
 
 			// Perform the text-to-speech request on the text input with the selected voice
-			// parameters and
-			// audio file type
+			// parameters and audio file type
 			SynthesizeSpeechResponse response = textToSpeechClient.synthesizeSpeech(input, deVoiceMale, audioConfig);
 
 			// Get the audio contents from the response
@@ -301,9 +315,43 @@ public class GoogleTTS implements CredentialsProvider {
 		}
 		for (String s : codes) {
 			System.out.println(s);
-
 		}
+	}
 
+	public String translate(String src, String dst, String message) {
+		TranslateOptions build;
+		try {
+
+			build = TranslateOptions.newBuilder() //
+					.setCredentials(getCredentials()) //
+					.build();
+			final Translate service = build.getService();
+			List<Language> languages = service.listSupportedLanguages();
+			Language srcLang = null, dstLang = null;
+			for (Language language : languages) {
+				if (src.equals(language.getCode())) {
+					srcLang = language;
+				}
+				if (dst.equals(language.getCode())) {
+					dstLang = language;
+				}
+			}
+			if (srcLang == null) {
+				return src + " not supported";
+			}
+			if (dstLang == null) {
+				return dst + " not supported";
+			}
+
+			final Translation translated = service.translate(message, TranslateOption.sourceLanguage(src),
+					TranslateOption.targetLanguage(dst));
+			final String translatedText = StringEscapeUtils.unescapeHtml4(translated.getTranslatedText());
+
+			return translatedText;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return "";
 	}
 
 }

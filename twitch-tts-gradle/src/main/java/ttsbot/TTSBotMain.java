@@ -45,10 +45,16 @@ public class TTSBotMain {
 	 */
 	private static void startupCheck() {
 		final String os_arch = System.getProperty("os.arch");
-		final String java_version = System.getProperty("java.specification.version");
-		log.info("os.arch:" + os_arch + " version:" + java_version);
+		final String version = System.getProperty("java.specification.version");
+		final String java_version = version;
+		log.info("os.arch:" + os_arch + " java version:" + java_version);
 
-		final boolean javaVersionAtLeast8 = SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_8);
+		boolean javaVersionAtLeast8 = false;
+		if (!version.contains(".") && Integer.valueOf(version) >= 8) {
+			javaVersionAtLeast8 = true;
+		} else {
+			javaVersionAtLeast8 = SystemUtils.isJavaVersionAtLeast(JavaVersion.JAVA_1_8);
+		}
 		log.info("java version 8+: " + javaVersionAtLeast8);
 
 		if (os_arch.contains("64") == false && javaVersionAtLeast8) {
