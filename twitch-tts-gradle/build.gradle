@@ -8,6 +8,10 @@
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
+apply plugin: "eclipse"
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -25,8 +29,8 @@ dependencies {
     // we need a custom pircbotx build, which uses the newer guava libraries
     compile 'org.pircbotx:pircbotx:2.2-CLU'
     compile 'org.pircbotx:pircbotx:2.2-CLU-sources'
-    
-    // loggin
+     
+    // logging
     compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.1'
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
@@ -44,4 +48,10 @@ jar {
 		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+task copyClasses (type: Copy) {
+	from "settings.properties" ,"google-credentials.json", "oauth.properties"
+	into "$buildDir/libs" 
+}
+jar.dependsOn copyClasses
 

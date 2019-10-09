@@ -12,12 +12,15 @@ import com.google.api.gax.core.CredentialsProvider;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.texttospeech.v1.AudioConfig;
+import com.google.cloud.texttospeech.v1.ListVoicesRequest;
+import com.google.cloud.texttospeech.v1.ListVoicesResponse;
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
 import com.google.cloud.texttospeech.v1.SynthesisInput;
 import com.google.cloud.texttospeech.v1.SynthesizeSpeechResponse;
 import com.google.cloud.texttospeech.v1.TextToSpeechClient;
 import com.google.cloud.texttospeech.v1.TextToSpeechSettings;
 import com.google.cloud.texttospeech.v1.TextToSpeechSettings.Builder;
+import com.google.cloud.texttospeech.v1.Voice;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -35,7 +38,9 @@ public class GoogleTTS implements CredentialsProvider {
 	public static final String DEFAULT_LANG = "de";
 
 	// known TTS languages
-	private static List<String> knownLanguages = Lists.newArrayList("de", //
+	private static List<String> knownLanguages = Lists.newArrayList(//
+			"de", //
+			"da", //
 			"en-GB", //
 			"en-AU", //
 			"en-US", //
@@ -227,6 +232,53 @@ public class GoogleTTS implements CredentialsProvider {
 
 	public double getPitch() {
 		return pitch;
+	}
+
+	public List<Voice> listAllSupportedVoices() throws Exception {
+		// Instantiates a client
+
+		final Builder b = TextToSpeechSettings.newBuilder();
+		b.setCredentialsProvider(this);
+
+		try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create(b.build())) {
+			// Builds the text to speech list voices request
+
+			ListVoicesRequest request = ListVoicesRequest.getDefaultInstance();
+
+			// Performs the list voices request
+			ListVoicesResponse response = textToSpeechClient.listVoices(request);
+			List<Voice> voices = response.getVoicesList();
+
+			for (Voice voice : voices) {
+				// Display the voice's name. Example: tpc-vocoded
+				System.out.format("Name: %s\n", voice.getName());
+
+				// Display the supported language codes for this voice. Example: "en-us"
+				List<ByteString> languageCodes = voice.getLanguageCodesList().asByteStringList();
+				for (ByteString languageCode : languageCodes) {
+					System.out.format("Supported Language: %s\n", languageCode.toStringUtf8());
+				}
+
+				// Display the SSML Voice Gender
+				System.out.format("SSML Voice Gender: %s\n", voice.getSsmlGender());
+
+				// Display the natural sample rate hertz for this voice. Example: 24000
+				System.out.format("Natural Sample Rate Hertz: %s\n\n", voice.getNaturalSampleRateHertz());
+			}
+			return voices;
+		}
+	}
+
+	public static void main(String[] args) {
+		GoogleTTS tts = new GoogleTTS();
+		try {
+			for (Voice v : tts.listAllSupportedVoices()) {
+				System.out.println(v.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

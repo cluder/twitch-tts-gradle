@@ -50,6 +50,7 @@ public class SwingUI extends JFrame {
 	private JTextField textFieldStatus;
 
 	private JButton btnConnect;
+	private JButton btnDisconnect;
 	private JSpinner spinnerVolume;
 	private JSpinner spinnerPitch;
 	private JSpinner spinnerSpeakrate;
@@ -81,15 +82,22 @@ public class SwingUI extends JFrame {
 	}
 
 	private void setConnectionState() {
-		if (bot != null) {
-			if (bot.isConnected()) {
-				textFieldStatus.setText(CONNECTED);
-				btnConnect.setEnabled(false);
-			} else {
-				textFieldStatus.setText(NOT_CONNECTED);
-				btnConnect.setEnabled(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (bot != null) {
+					if (bot.isConnected()) {
+						textFieldStatus.setText(CONNECTED);
+						btnConnect.setEnabled(false);
+						btnDisconnect.setEnabled(true);
+					} else {
+						textFieldStatus.setText(NOT_CONNECTED);
+						btnConnect.setEnabled(true);
+						btnDisconnect.setEnabled(false);
+					}
+				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -97,13 +105,6 @@ public class SwingUI extends JFrame {
 	 */
 	public SwingUI(TwitchBot bot) {
 		this.bot = bot;
-
-		pircBotThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				bot.connect();
-			}
-		}, "PircBotX Thread");
 
 		setTitle("Twitch TTS Bot");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -136,13 +137,16 @@ public class SwingUI extends JFrame {
 		textFieldChannel.setBounds(62, 38, 138, 20);
 		panel.add(textFieldChannel);
 		textFieldChannel.setColumns(10);
+		textFieldChannel.setEditable(false);
 
+		// connect
 		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (bot == null) {
 					return;
 				}
+				pircBotThread = createPircXThread(bot);
 				pircBotThread.start();
 
 				for (int i = 0; i < 10; i++) {
@@ -154,16 +158,36 @@ public class SwingUI extends JFrame {
 						break;
 					}
 				}
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						setConnectionState();
-					}
-				});
+				setConnectionState();
 			}
 		});
 		btnConnect.setBounds(210, 37, 89, 23);
 		panel.add(btnConnect);
+
+		// disconnect
+		btnDisconnect = new JButton("Disconnect");
+		btnDisconnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (bot == null) {
+					return;
+				}
+				bot.disconnect();
+
+				for (int i = 0; i < 20; i++) {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e1) {
+					}
+					if (!bot.isConnected()) {
+						break;
+					}
+				}
+				pircBotThread.interrupt();
+				setConnectionState();
+			}
+		});
+		btnDisconnect.setBounds(305, 37, 100, 23);
+		panel.add(btnDisconnect);
 
 		JLabel lblStatus = new JLabel("Status:");
 		lblStatus.setBounds(10, 67, 46, 14);
@@ -293,8 +317,13 @@ public class SwingUI extends JFrame {
 
 		JLabel labelTwitchSettings = new JLabel("Twitch Settings");
 		labelTwitchSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
-		labelTwitchSettings.setBounds(10, 11, 123, 14);
+		labelTwitchSettings.setBounds(10, 11, 105, 14);
 		panel.add(labelTwitchSettings);
+
+		JLabel labelTwitchSettingsHint = new JLabel(" (see settings.properties)");
+		labelTwitchSettingsHint.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		labelTwitchSettingsHint.setBounds(113, 11, 150, 14);
+		panel.add(labelTwitchSettingsHint);
 
 		JSeparator separator_1 = new JSeparator();
 		separator_1.setBounds(10, 270, 418, 14);
@@ -344,5 +373,14 @@ public class SwingUI extends JFrame {
 		panel.add(separator_2);
 
 		init();
+	}
+
+	private Thread createPircXThread(TwitchBot bot) {
+		return new Thread(new Runnable() {
+			@Override
+			public void run() {
+				bot.connect();
+			}
+		}, "PircBotX Thread");
 	}
 }
