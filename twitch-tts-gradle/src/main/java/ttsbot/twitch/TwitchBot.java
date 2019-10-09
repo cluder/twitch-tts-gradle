@@ -232,6 +232,37 @@ public class TwitchBot extends ListenerAdapter {
 			}
 		}
 
+		if (command.equals("!tr")) {
+			String src = null;
+			String dst = null;
+			final String[] split = msgWithoutCommand.split(" ");
+			if (split.length > 2) {
+				if (split[0].length() == 2) {
+					src = split[0];
+					msgWithoutCommand = msgWithoutCommand.substring(3);
+				}
+				if (split[1].length() == 2) {
+					dst = split[1];
+					msgWithoutCommand = msgWithoutCommand.substring(2);
+				}
+			}
+			if (src == null || dst == null) {
+				sendMsg("!tr <quelle> <ziel> <text>");
+			} else {
+				final String translate = tts.translate(src, dst, msgWithoutCommand);
+				if (translate != null && translate.isEmpty() == false) {
+					sendMsg(translate);
+				}
+				boolean known = tts.isKnownLanguage(dst);
+				if (known) {
+					try {
+						tts.syntesizeAndPlay(translate, dst, null);
+					} catch (IOException e) {
+						log.error(e.getMessage(), e);
+					}
+				}
+			}
+		}
 	}
 
 	/**
