@@ -21,10 +21,16 @@ public class Settings {
 	public static String BOT_NICK = "bot_nick";
 	public static String OAUTH_TOKEN = "oauth_irc";
 
-	final Properties properties;
+	Properties properties;
 
 	private Settings() throws Exception {
-		properties = load();
+		this.properties = new Properties();
+		try {
+			properties = load();
+		} catch (Exception e) {
+			log.error("error in load()", e);
+			throw e;
+		}
 	}
 
 	public static Settings get() {
@@ -42,11 +48,13 @@ public class Settings {
 	 * read all settings from properties files.
 	 */
 	public Properties load() throws Exception {
+		log.info("loading oauth.properties");
 		Properties properties = new Properties();
 		File file = new File("oauth.properties");
 		try (FileInputStream fis = new FileInputStream(file)) {
 			properties.load(fis);
 		}
+		log.info("loading settings.properties");
 		file = new File("settings.properties");
 		try (FileInputStream fis = new FileInputStream(file)) {
 			properties.load(fis);

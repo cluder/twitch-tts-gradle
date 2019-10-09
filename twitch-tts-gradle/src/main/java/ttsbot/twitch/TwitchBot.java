@@ -35,10 +35,14 @@ public class TwitchBot extends ListenerAdapter {
 
 	public TwitchBot() throws UnsupportedEncodingException {
 
+		final Settings settings = Settings.get();
+		if (settings == null) {
+			log.error("settings null");
+		}
 		tts = new GoogleTTS();
 
-		channel = Settings.get().get(Settings.CHANNEL);
-		final String serverPassword = Settings.get().get(Settings.OAUTH_TOKEN);
+		channel = settings.get(Settings.CHANNEL);
+		final String serverPassword = settings.get(Settings.OAUTH_TOKEN);
 
 		Configuration config = new Configuration.Builder() //
 				.setName("TwitchChatBot") //
@@ -239,6 +243,14 @@ public class TwitchBot extends ListenerAdapter {
 		} catch (IOException | IrcException e) {
 			log.error(e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * starts the chat bot and initializes the chatters-list.
+	 */
+	public void disconnect() {
+		pircBot.stopBotReconnect();
+		pircBot.sendIRC().quitServer("leaving");
 	}
 
 	/**
