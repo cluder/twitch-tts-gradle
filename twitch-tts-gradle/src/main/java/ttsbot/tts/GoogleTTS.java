@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,19 +42,34 @@ public class GoogleTTS implements CredentialsProvider {
 	// known TTS languages
 	private static List<String> knownLanguages = Lists.newArrayList(//
 			"de", //
-			"da", //
 			"en-GB", //
-			"en-AU", //
-			"en-US", //
-			"nl", //
+			"es", //
 			"fr", //
 			"it", //
+			"nl", //
+			"ru", //
+			"tr", //
+			"da", //
+			"cs", //
+			"el", //
+			"en-AU", //
+			"en-IN", //
+			"en-US", //
+			"fi", //
+			"fil", //
+			"hi", //
+			"hu", //
+			"id", //
 			"ja", //
 			"ko", //
+			"nb", //
+			"pl", //
 			"pt", //
-			"es", //
+			"sk", //
 			"sv", //
-			"tr");
+			"uk", //
+			"vi" //
+	);
 
 	// TTS settings
 	private double speakingRate = 0;
@@ -121,6 +138,10 @@ public class GoogleTTS implements CredentialsProvider {
 	}
 
 	public boolean setLang(String value) {
+		return setLang(value, false);
+	}
+
+	public boolean setLang(String value, boolean force) {
 		if (value == null || value.length() < 2) {
 			return false;
 		}
@@ -132,7 +153,7 @@ public class GoogleTTS implements CredentialsProvider {
 				break;
 			}
 		}
-		if (known) {
+		if (known || force) {
 			this.lang = value.trim();
 		}
 		return known;
@@ -234,11 +255,11 @@ public class GoogleTTS implements CredentialsProvider {
 		return pitch;
 	}
 
-	public List<Voice> listAllSupportedVoices() throws Exception {
+	static public List<Voice> listAllSupportedVoices() throws Exception {
 		// Instantiates a client
 
 		final Builder b = TextToSpeechSettings.newBuilder();
-		b.setCredentialsProvider(this);
+		b.setCredentialsProvider(new GoogleTTS());
 
 		try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create(b.build())) {
 			// Builds the text to speech list voices request
@@ -270,13 +291,17 @@ public class GoogleTTS implements CredentialsProvider {
 	}
 
 	public static void main(String[] args) {
-		GoogleTTS tts = new GoogleTTS();
+		Set<String> codes = new TreeSet<>();
 		try {
-			for (Voice v : tts.listAllSupportedVoices()) {
-				System.out.println(v.toString());
+			for (Voice v : GoogleTTS.listAllSupportedVoices()) {
+				codes.add(v.getName().substring(0, 6));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		for (String s : codes) {
+			System.out.println(s);
+
 		}
 
 	}
