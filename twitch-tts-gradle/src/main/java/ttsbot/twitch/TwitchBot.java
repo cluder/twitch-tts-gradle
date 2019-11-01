@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ttsbot.tts.GoogleTTS;
+import ttsbot.ui.SwingUI;
 import ttsbot.util.Settings;
 import ttsbot.util.Utils;
 
@@ -32,6 +33,7 @@ public class TwitchBot extends ListenerAdapter {
 	PircBotX pircBot;
 	GoogleTTS tts;
 	private String channel;
+	SwingUI ui;
 
 	public TwitchBot() throws UnsupportedEncodingException {
 
@@ -146,9 +148,12 @@ public class TwitchBot extends ListenerAdapter {
 				sendMsg("Current pitch: " + tts.getPitch());
 			} else {
 				String parsed = msgWithoutCommand;
-				int parseInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
-				final boolean result = tts.setPitch(parseInt);
+				int parsedInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
+				final boolean result = tts.setPitch(parsedInt);
 				if (result) {
+					sendMsg("pitch set to " + tts.getPitch());
+					ui.updatePitch(tts.getPitch());
+				} else {
 					sendMsg("pitch value has to be between -20 and +20");
 				}
 			}
@@ -170,6 +175,7 @@ public class TwitchBot extends ListenerAdapter {
 					final boolean success = tts.setVolume(value);
 					if (success) {
 						sendMsg("Volume set to " + value + " dB");
+						ui.updateVol(value);
 					} else {
 						sendMsg("Volume has to be between -96 and +16");
 					}
@@ -187,6 +193,7 @@ public class TwitchBot extends ListenerAdapter {
 				boolean success = tts.setLang(msgWithoutCommand);
 				if (success) {
 					sendMsg("Language set to:" + msgWithoutCommand);
+					ui.updateLang(tts.getLang());
 				} else {
 					sendMsg("Language not known, try:" + tts.getKnownLanguages());
 				}
@@ -201,6 +208,7 @@ public class TwitchBot extends ListenerAdapter {
 				boolean success = tts.setGender(msgWithoutCommand);
 				if (success) {
 					sendMsg("Gender set to:" + msgWithoutCommand);
+					ui.updateGender(tts.getGender());
 				} else {
 					sendMsg("Gender must be any of: female/male/neutral");
 				}
@@ -216,7 +224,8 @@ public class TwitchBot extends ListenerAdapter {
 				double newRate = Utils.constrainToRange(parsedDouble, 0.25, 4);
 				boolean success = tts.setSpeakingRate(newRate);
 				if (success) {
-					sendMsg("Speakrate set to:" + msgWithoutCommand);
+					sendMsg("Speakrate set to:" + tts.getSpeakrate());
+					ui.updateSpeakrate(newRate);
 				} else {
 					sendMsg("Speakrate has to be between -20 and +20");
 				}
@@ -332,6 +341,10 @@ public class TwitchBot extends ListenerAdapter {
 
 	public GoogleTTS getTts() {
 		return tts;
+	}
+
+	public void setUi(SwingUI swingUI) {
+		ui = swingUI;
 	}
 
 }
