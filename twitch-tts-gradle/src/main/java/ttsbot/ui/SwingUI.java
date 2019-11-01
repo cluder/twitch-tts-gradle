@@ -105,6 +105,7 @@ public class SwingUI extends JFrame {
 	 */
 	public SwingUI(TwitchBot bot) {
 		this.bot = bot;
+		bot.setUi(this);
 
 		setTitle("Twitch TTS Bot");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -143,9 +144,6 @@ public class SwingUI extends JFrame {
 		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (bot == null) {
-					return;
-				}
 				pircBotThread = createPircXThread(bot);
 				pircBotThread.start();
 
@@ -168,9 +166,6 @@ public class SwingUI extends JFrame {
 		btnDisconnect = new JButton("Disconnect");
 		btnDisconnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (bot == null) {
-					return;
-				}
 				bot.disconnect();
 
 				for (int i = 0; i < 20; i++) {
@@ -382,5 +377,45 @@ public class SwingUI extends JFrame {
 				bot.connect();
 			}
 		}, "PircBotX Thread");
+	}
+
+	public void updateVol(double value) {
+		this.spinnerVolume.setValue(value);
+	}
+
+	public void updateSpeakrate(double value) {
+		this.spinnerSpeakrate.setValue(value);
+	}
+
+	public void updatePitch(double value) {
+		this.spinnerPitch.setValue((int) value);
+	}
+
+	// TODO: sometimes the spinner dosent show the selected index
+	public void updateLang(String value) {
+		int matchedIdx = -1;
+		for (int i = 0; i < comboBoxLanguage.getItemCount(); i++) {
+			final String itemAt = comboBoxLanguage.getItemAt(i);
+			if (itemAt.startsWith(value)) {
+				matchedIdx = i;
+			}
+			if (itemAt.startsWith(value)) {
+				// exact match
+				matchedIdx = i;
+				break;
+			}
+		}
+		if (matchedIdx != -1) {
+			this.comboBoxLanguage.setSelectedIndex(matchedIdx);
+		}
+	}
+
+	public void updateGender(String gender) {
+		for (int i = 0; i < comboBoxGender.getItemCount(); i++) {
+			final String itemAt = comboBoxGender.getItemAt(i);
+			if (itemAt.equalsIgnoreCase(gender)) {
+				this.comboBoxGender.setSelectedItem(itemAt);
+			}
+		}
 	}
 }
