@@ -8,4 +8,5 @@ Text-to-speech is done through [google cloud text-to-speech](https://cloud.googl
 * create a google cloud account with access to the text-to-speech api and paste your key into google-credentials.json see also [Google-API-Account-Erstellung](https://github.com/cluder/twitch-tts-gradle/wiki/Google-API-Account-Erstellung)
 * create a OAuth token using [Twitch Chat OAuth Password Generator](https://twitchapps.com/tmi/) and edit the oauth.properties
 
-[![Build Status](http://34.102.148.105/job/tts-bot/2/badge/icon)](http://34.102.148.105/job/tts-bot/2/)
+## Build status
+[![Build Status](http://34.102.148.105/buildStatus/icon?job=tts-bot)](http://34.102.148.105/job/tts-bot/)
