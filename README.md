@@ -1,7 +1,11 @@
 # twitch-tts-gradle
 
 Twitch chat bot, using [PircBotX](https://github.com/pircbotx/pircbotx).
-Text-to-speech is done through [google cloud text-to-speech](https://cloud.google.com/text-to-speech)
+Text-to-speech done through [google cloud text-to-speech](https://cloud.google.com/text-to-speech)
+
+## Features
+* !s _text_  - Text to speech
+* !tr src-lang dst-lang _text_  - translate and text to speech
 
 ## Usage:
 * checkout source and use gradle to build the jar _gradle jar_
