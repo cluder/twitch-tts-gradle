@@ -56,7 +56,8 @@ public class TwitchBot extends ListenerAdapter {
 				.addCapHandler(new EnableCapHandler("twitch.tv/tags")) // enable badges
 				.addCapHandler(new EnableCapHandler("twitch.tv/commands")) // enable clearchat,usernotice etc.
 				.setAutoReconnect(true) //
-				.setAutoReconnectDelay(new StaticDelay(2000)) //
+				.setAutoReconnectDelay(new StaticDelay(2000)) // pircbotx 2.1
+//				.setAutoReconnectDelay(2000) // pircbotx 2.2
 				.setEncoding(StandardCharsets.UTF_8) //
 				.buildConfiguration();
 
