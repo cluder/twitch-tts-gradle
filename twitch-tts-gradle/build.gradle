@@ -28,7 +28,7 @@ dependencies {
     compile 'com.google.cloud:google-cloud-translate:1.93.0'
     
     // we need a custom pircbotx build, which uses the newer guava libraries
-    implementation files('libs/pircbotx-2.2-CLU.jar')
+    compile files('libs/pircbotx-2.2-CLU.jar')
     //compile 'org.pircbotx:pircbotx:2.1'
     //compile 'org.pircbotx:pircbotx:2.2-CLU-sources'
      
@@ -47,7 +47,7 @@ jar {
 		attributes 'Main-Class': 'ttsbot.TTSBotMain'
 	}
 	from {
-		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+		configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
