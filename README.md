@@ -4,6 +4,7 @@ Twitch chat bot, using [PircBotX](https://github.com/pircbotx/pircbotx).
 Text-to-speech done through [google cloud text-to-speech](https://cloud.google.com/text-to-speech)
 
 ## Features
+Ability to change volume, pitch, gender, speakrate via twitch commands.
 * !s _text_  - Text to speech
 * !tr src-lang dst-lang _text_  - translate and text to speech
 
