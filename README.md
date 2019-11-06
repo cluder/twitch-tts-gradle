@@ -13,4 +13,4 @@ Text-to-speech done through [google cloud text-to-speech](https://cloud.google.c
 * create a OAuth token using [Twitch Chat OAuth Password Generator](https://twitchapps.com/tmi/) and edit the oauth.properties
 
 ## Build status
-[![Build Status](http://34.102.148.105/buildStatus/icon?job=tts-bot)](http://34.102.148.105/job/tts-bot/)
+[![Build Status](http://35.204.194.71:8080/buildStatus/icon?job=tts-bot)](http://35.204.194.71:8080/job/tts-bot/)
