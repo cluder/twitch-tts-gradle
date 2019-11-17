@@ -1,6 +1,7 @@
 package ttsbot.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,7 +9,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,6 +32,7 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ttsbot.TTSBotMain;
 import ttsbot.tts.GoogleTTS;
 import ttsbot.twitch.TwitchBot;
 import ttsbot.util.Settings;
@@ -38,7 +42,6 @@ import ttsbot.util.Settings;
  */
 public class SwingUI extends JFrame {
 	private final static Logger log = LoggerFactory.getLogger(SwingUI.class);
-
 	TwitchBot bot;
 
 	Thread pircBotThread;
@@ -56,6 +59,10 @@ public class SwingUI extends JFrame {
 	private JSpinner spinnerSpeakrate;
 	private JComboBox<String> comboBoxGender;
 	private JComboBox<String> comboBoxLanguage;
+	private JLabel txtVlcInfo;
+	private JCheckBox chckbxMediaCommands;
+
+	private boolean mediaCommandsEnabled = true;
 
 	/**
 	 * Set default values.
@@ -79,6 +86,25 @@ public class SwingUI extends JFrame {
 			}
 		}
 
+		// vlc
+		if (bot.getMediaPlayer() == null) {
+			txtVlcInfo.setOpaque(true);
+			txtVlcInfo.setText("VLC not available - media palyback disabled");
+			txtVlcInfo.setBackground(Color.red);
+			chckbxMediaCommands.setEnabled(false);
+			chckbxMediaCommands.setSelected(false);
+			mediaCommandsEnabled = false;
+		} else {
+			txtVlcInfo.setText("VLC found - media palyback enabled");
+			chckbxMediaCommands.setEnabled(true);
+			chckbxMediaCommands.setSelected(true);
+			mediaCommandsEnabled = true;
+		}
+
+	}
+
+	public boolean isMediaCommandsEnabled() {
+		return mediaCommandsEnabled;
 	}
 
 	private void setConnectionState() {
@@ -109,21 +135,27 @@ public class SwingUI extends JFrame {
 
 		setTitle("Twitch TTS Bot");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 454, 510);
+		setBounds(100, 100, 454, 556);
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 
-		JMenu mnFile = new JMenu("File");
-		menuBar.add(mnFile);
+		{
+			JMenu mnuFile = new JMenu("File");
+			menuBar.add(mnuFile);
 
-		JMenuItem mntmExit = new JMenuItem("Exit");
-		mntmExit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
-		mnFile.add(mntmExit);
+			JMenuItem mntmExit = new JMenuItem("Exit");
+			mntmExit.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.exit(0);
+				}
+			});
+			mnuFile.add(mntmExit);
+		}
+
+		menuBar.add(Box.createHorizontalGlue());
+		menuBar.add(new JLabel("Version " + TTSBotMain.VERSION));
+		menuBar.add(Box.createHorizontalStrut(10));
 
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.CENTER);
@@ -143,6 +175,7 @@ public class SwingUI extends JFrame {
 		// connect
 		btnConnect = new JButton("Connect");
 		btnConnect.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 				pircBotThread = createPircXThread(bot);
 				pircBotThread.start();
@@ -206,7 +239,7 @@ public class SwingUI extends JFrame {
 
 		JTextArea textAreaTTSInput = new JTextArea();
 		textAreaTTSInput.setText("Hallo Welt");
-		textAreaTTSInput.setBounds(10, 134, 418, 91);
+		textAreaTTSInput.setBounds(10, 134, 418, 54);
 		panel.add(textAreaTTSInput);
 
 		JLabel lblTtsinput = new JLabel("TTS Input");
@@ -227,7 +260,7 @@ public class SwingUI extends JFrame {
 				}
 			}
 		});
-		btnSpeak.setBounds(10, 236, 89, 23);
+		btnSpeak.setBounds(10, 199, 89, 23);
 		panel.add(btnSpeak);
 
 		comboBoxLanguage = new JComboBox<>();
@@ -238,14 +271,14 @@ public class SwingUI extends JFrame {
 				}
 			}
 		});
-		comboBoxLanguage.setBounds(161, 304, 126, 20);
+		comboBoxLanguage.setBounds(161, 269, 126, 20);
 		for (String s : bot.getTts().getKnownLanguages()) {
 			comboBoxLanguage.addItem(s);
 		}
 		panel.add(comboBoxLanguage);
 
 		JLabel lblGender = new JLabel("Gender");
-		lblGender.setBounds(10, 332, 98, 14);
+		lblGender.setBounds(10, 297, 98, 14);
 		panel.add(lblGender);
 
 		comboBoxGender = new JComboBox<>();
@@ -259,7 +292,7 @@ public class SwingUI extends JFrame {
 				}
 			}
 		});
-		comboBoxGender.setBounds(161, 329, 123, 20);
+		comboBoxGender.setBounds(161, 294, 123, 20);
 		panel.add(comboBoxGender);
 
 		JSeparator separator = new JSeparator();
@@ -267,7 +300,7 @@ public class SwingUI extends JFrame {
 		panel.add(separator);
 
 		JLabel lblSpeakrate = new JLabel("Speakrate (0.25, 4.0)");
-		lblSpeakrate.setBounds(10, 360, 123, 14);
+		lblSpeakrate.setBounds(10, 325, 123, 14);
 		panel.add(lblSpeakrate);
 
 		spinnerSpeakrate = new JSpinner(new SpinnerNumberModel(1, 0.25, 4, 0.01));
@@ -278,7 +311,7 @@ public class SwingUI extends JFrame {
 
 			}
 		});
-		spinnerSpeakrate.setBounds(161, 357, 64, 20);
+		spinnerSpeakrate.setBounds(161, 322, 64, 20);
 		panel.add(spinnerSpeakrate);
 
 		spinnerPitch = new JSpinner(new SpinnerNumberModel(1, -20, 20, 1));
@@ -289,19 +322,19 @@ public class SwingUI extends JFrame {
 			}
 		});
 
-		spinnerPitch.setBounds(161, 385, 64, 20);
+		spinnerPitch.setBounds(161, 350, 64, 20);
 		panel.add(spinnerPitch);
 
 		JLabel lblPitch = new JLabel("Pitch (-20, +20)");
-		lblPitch.setBounds(10, 388, 108, 14);
+		lblPitch.setBounds(10, 353, 108, 14);
 		panel.add(lblPitch);
 
 		JLabel lblVolume = new JLabel("Volume dB (-96, +16)");
-		lblVolume.setBounds(10, 415, 123, 14);
+		lblVolume.setBounds(10, 380, 123, 14);
 		panel.add(lblVolume);
 
 		spinnerVolume = new JSpinner(new SpinnerNumberModel(0, -96, 16, 0.25));
-		spinnerVolume.setBounds(161, 412, 64, 20);
+		spinnerVolume.setBounds(161, 377, 64, 20);
 		spinnerVolume.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				final Number value = (Number) spinnerVolume.getValue();
@@ -321,41 +354,41 @@ public class SwingUI extends JFrame {
 		panel.add(labelTwitchSettingsHint);
 
 		JSeparator separator_1 = new JSeparator();
-		separator_1.setBounds(10, 270, 418, 14);
+		separator_1.setBounds(10, 233, 418, 14);
 		panel.add(separator_1);
 
 		JLabel lblTtsSettings = new JLabel("TTS Settings");
 		lblTtsSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblTtsSettings.setBounds(10, 282, 123, 14);
+		lblTtsSettings.setBounds(10, 247, 123, 14);
 		panel.add(lblTtsSettings);
 
 		JLabel lblLanguage = new JLabel("Language");
-		lblLanguage.setBounds(10, 307, 89, 14);
+		lblLanguage.setBounds(10, 272, 89, 14);
 		panel.add(lblLanguage);
 
 		JLabel lblCommands = new JLabel("Chat Commands");
 		lblCommands.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblCommands.setBounds(324, 282, 117, 14);
+		lblCommands.setBounds(324, 247, 104, 14);
 		panel.add(lblCommands);
 
 		JLabel lblCmdLang = new JLabel("!lang");
-		lblCmdLang.setBounds(324, 307, 77, 14);
+		lblCmdLang.setBounds(324, 272, 77, 14);
 		panel.add(lblCmdLang);
 
 		JLabel lblgender = new JLabel("!gender");
-		lblgender.setBounds(324, 332, 77, 14);
+		lblgender.setBounds(324, 297, 77, 14);
 		panel.add(lblgender);
 
 		JLabel lblCmdSpeakrate = new JLabel("!speakrate");
-		lblCmdSpeakrate.setBounds(324, 360, 77, 14);
+		lblCmdSpeakrate.setBounds(324, 325, 77, 14);
 		panel.add(lblCmdSpeakrate);
 
 		JLabel lblCmdPitch = new JLabel("!pitch");
-		lblCmdPitch.setBounds(324, 388, 77, 14);
+		lblCmdPitch.setBounds(324, 353, 77, 14);
 		panel.add(lblCmdPitch);
 
 		JLabel lblCmdVolume = new JLabel("!vol");
-		lblCmdVolume.setBounds(324, 415, 77, 14);
+		lblCmdVolume.setBounds(324, 380, 77, 14);
 		panel.add(lblCmdVolume);
 
 		JSeparator separator_3 = new JSeparator();
@@ -364,8 +397,43 @@ public class SwingUI extends JFrame {
 
 		JSeparator separator_2 = new JSeparator();
 		separator_2.setOrientation(SwingConstants.VERTICAL);
-		separator_2.setBounds(305, 279, 9, 161);
+		separator_2.setBounds(305, 244, 9, 161);
 		panel.add(separator_2);
+
+		JSeparator separator_4 = new JSeparator();
+		separator_4.setBounds(10, 405, 418, 14);
+		panel.add(separator_4);
+
+		JLabel lblMedia = new JLabel("Media Settings");
+		lblMedia.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblMedia.setBounds(10, 415, 123, 14);
+		panel.add(lblMedia);
+
+		txtVlcInfo = new JLabel();
+		txtVlcInfo.setEnabled(false);
+		txtVlcInfo.setBounds(10, 465, 315, 20);
+		panel.add(txtVlcInfo);
+
+		chckbxMediaCommands = new JCheckBox("Media Commands enabled");
+		chckbxMediaCommands.setSelected(true);
+		chckbxMediaCommands.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (bot.getMediaPlayer() == null) {
+					txtVlcInfo.setBackground(Color.red);
+				}
+
+				if (chckbxMediaCommands.isSelected()) {
+					txtVlcInfo.setText("VLC found - media palyback enabled");
+					mediaCommandsEnabled = true;
+				} else {
+					txtVlcInfo.setText("VLC found - media palyback disabled");
+					mediaCommandsEnabled = false;
+					bot.stopMedia();
+				}
+			}
+		});
+		chckbxMediaCommands.setBounds(10, 436, 230, 23);
+		panel.add(chckbxMediaCommands);
 
 		init();
 	}

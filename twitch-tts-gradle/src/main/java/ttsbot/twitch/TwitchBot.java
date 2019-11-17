@@ -3,6 +3,10 @@ package ttsbot.twitch;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -23,6 +27,8 @@ import ttsbot.tts.GoogleTTS;
 import ttsbot.ui.SwingUI;
 import ttsbot.util.Settings;
 import ttsbot.util.Utils;
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
 /**
  * Chat bot, implements PircBotx's {@link ListenerAdapter}.
@@ -34,6 +40,7 @@ public class TwitchBot extends ListenerAdapter {
 	GoogleTTS tts;
 	private String channel;
 	SwingUI ui;
+	private MediaPlayer mediaPlayer = null;
 
 	public TwitchBot() throws UnsupportedEncodingException {
 
@@ -63,6 +70,15 @@ public class TwitchBot extends ListenerAdapter {
 
 		pircBot = new PircBotX(config);
 
+		try {
+			mediaPlayer = new MediaPlayerFactory().mediaPlayers().newMediaPlayer();
+		} catch (Throwable e) {
+			log.error("could not create media player", e);
+		}
+	}
+
+	public MediaPlayer getMediaPlayer() {
+		return mediaPlayer;
 	}
 
 	@Override
@@ -271,6 +287,40 @@ public class TwitchBot extends ListenerAdapter {
 						log.error(e.getMessage(), e);
 					}
 				}
+			}
+		}
+
+		playMedia(command);
+	}
+
+	public void stopMedia() {
+		if (mediaPlayer == null) {
+			return;
+		}
+		mediaPlayer.controls().stop();
+
+	}
+
+	private void playMedia(String command) {
+		if (ui.isMediaCommandsEnabled() == false) {
+			return;
+		}
+		if (mediaPlayer == null) {
+			return;
+		}
+		if (command.length() < 2) {
+			return;
+		}
+		String media = command.substring(1);
+		final String mediaPath = "media/";
+		List<String> extensions = Arrays.asList("mp3", "mp4", "wmv", "avi", "mpg", "wav", "ogg", "gif", "png", "jpg",
+				"bmp");
+
+		for (String ext : extensions) {
+			final String fileNAme = mediaPath + media + "." + ext;
+			if (Files.exists(Paths.get(fileNAme))) {
+				mediaPlayer.media().play(fileNAme);
+				break;
 			}
 		}
 	}

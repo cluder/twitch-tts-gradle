@@ -26,6 +26,8 @@ dependencies {
     //compile 'org.apache.commons:commons-math3:3.6.1'
     compile 'com.google.cloud:google-cloud-texttospeech:0.114.0-beta'
     compile 'com.google.cloud:google-cloud-translate:1.93.0'
+    compile 'uk.co.caprica:vlcj:4.2.0'
+    
     
     // we need a custom pircbotx build, which uses the newer guava libraries
     compile files('libs/pircbotx-2.2-CLU.jar')
