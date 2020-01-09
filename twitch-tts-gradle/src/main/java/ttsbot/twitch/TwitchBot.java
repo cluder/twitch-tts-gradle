@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.pircbotx.Configuration;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import marytts.exceptions.MaryConfigurationException;
+import ttsbot.tts.AmazonPollyTTSProvider;
 import ttsbot.tts.GoogleTTSProvider;
 import ttsbot.tts.MaryTTSProvider;
 import ttsbot.tts.TTSProvider;
@@ -100,6 +102,14 @@ public class TwitchBot extends ListenerAdapter {
 			ttsProviders.add(provider);
 		} catch (Exception e) {
 			log.info("could not instantiate Mary TTS");
+		}
+
+		// Polly
+		try {
+			TTSProvider provider = new AmazonPollyTTSProvider();
+			ttsProviders.add(provider);
+		} catch (Exception e) {
+			log.error("could not instantiate Amazon Polly TTS", e);
 		}
 	}
 
@@ -295,6 +305,37 @@ public class TwitchBot extends ListenerAdapter {
 			}
 		}
 
+		if (command.equals("!voice")) {
+			if (!msgWithoutCommand.isEmpty()) {
+				if (tts.isKnownVoice(msgWithoutCommand)) {
+					tts.setVoice(msgWithoutCommand);
+				} else {
+					Collection<String> voices = tts.listSupportedVoices(tts.getLang());
+					sendMsg("Voice not known, available voices for lang " + tts.getLang() + ": "
+							+ String.join(", ", voices));
+				}
+			} else {
+				sendMsg("Current Voice: " + tts.getVoice());
+			}
+		}
+
+		if (command.equals("!tts")) {
+			if (msgWithoutCommand.isEmpty()) {
+				sendMsg("Current TTS Provider: " + tts.getName());
+			} else {
+				boolean success = setTTSProvider(msgWithoutCommand);
+				if (success) {
+					tts.setDefault();
+				} else {
+					List<String> providerNames = new ArrayList<>();
+					for (TTSProvider p : ttsProviders) {
+						providerNames.add(p.getName());
+					}
+					sendMsg("Avaliable TTS Providers:" + String.join(", ", providerNames));
+				}
+			}
+		}
+
 		if (command.equals("!speak") || command.equals("!s")) {
 			try {
 				tts.syntesizeAndPlay(msgWithoutCommand);
@@ -337,6 +378,16 @@ public class TwitchBot extends ListenerAdapter {
 		}
 
 		playMedia(command);
+	}
+
+	public boolean setTTSProvider(String msgWithoutCommand) {
+		for (TTSProvider p : getTtsProviders()) {
+			if (p.getName().equals(msgWithoutCommand)) {
+				tts = p;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void stopMedia() {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,8 @@ import ttsbot.util.Utils;
  */
 public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	private final static Logger log = LoggerFactory.getLogger(GoogleTTSProvider.class);
+	public static final String DEFAULT_LANG = "de";
+	public static final String DEFAULT_VOICE = "de-DE-Wavenet-A";
 
 	// TTS settings
 	private double speakingRate = 0;
@@ -101,6 +104,13 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return "Google TTS";
 	}
 
+	@Override
+	public void setDefault() {
+		lang = DEFAULT_LANG;
+		preferredVoice = DEFAULT_VOICE;
+
+	}
+
 	public List<String> getKnownLanguages() {
 		return knownLanguages;
 	}
@@ -115,8 +125,22 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	}
 
 	@Override
+	public boolean isKnownVoice(String lang) {
+		Collection<String> listSupportedVoices = listSupportedVoices(getLang());
+		if (listSupportedVoices.contains(lang)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	public void setVoice(String value) {
 		preferredVoice = value;
+	}
+
+	@Override
+	public String getVoice() {
+		return preferredVoice;
 	}
 
 	@Override
@@ -284,10 +308,10 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	}
 
 	@Override
-	public List<String> listSupportedVoices() {
+	public List<String> listSupportedVoices(String lang) {
 		List<String> voiceNames = new ArrayList<>();
 		try {
-			List<Voice> listAllSupportedVoices = listAllSupportedVoices();
+			List<Voice> listAllSupportedVoices = listAllSupportedVoices(lang);
 			listAllSupportedVoices.stream().forEach(v -> voiceNames.add(v.getName()));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -296,8 +320,11 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return voiceNames;
 	}
 
-	static public List<Voice> listAllSupportedVoices() throws Exception {
-		// Instantiates a client
+	/**
+	 * Returns all voices matching the given language.
+	 */
+	static public List<Voice> listAllSupportedVoices(String lang) throws Exception {
+		List<Voice> voicesForLanguage = new ArrayList<>();
 
 		final Builder b = TextToSpeechSettings.newBuilder();
 		b.setCredentialsProvider(new GoogleTTSProvider());
@@ -313,36 +340,20 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 
 			for (Voice voice : voices) {
 				// Display the voice's name. Example: tpc-vocoded
-				System.out.format("Name: %s\n", voice.getName());
-
-				// Display the supported language codes for this voice. Example: "en-us"
-				List<ByteString> languageCodes = voice.getLanguageCodesList().asByteStringList();
-				for (ByteString languageCode : languageCodes) {
-					System.out.format("Supported Language: %s\n", languageCode.toStringUtf8());
+				System.out.format("Name:%s Gender:%s Hz:%s\n", voice.getName(), voice.getSsmlGender(),
+						voice.getNaturalSampleRateHertz());
+				if (lang == null || voice.getName().startsWith(lang)) {
+					voicesForLanguage.add(voice);
 				}
+				// Display the supported language codes for this voice. Example: "en-us"
+//				List<ByteString> languageCodes = voice.getLanguageCodesList().asByteStringList();
+//				for (ByteString languageCode : languageCodes) {
+//					System.out.format("Supported Language: %s\n", languageCode.toStringUtf8());
+//				}
 
-				// Display the SSML Voice Gender
-				System.out.format("SSML Voice Gender: %s\n", voice.getSsmlGender());
-
-				// Display the natural sample rate hertz for this voice. Example: 24000
-				System.out.format("Natural Sample Rate Hertz: %s\n\n", voice.getNaturalSampleRateHertz());
 			}
-			return voices;
 		}
-	}
-
-	public static void main(String[] args) {
-		Set<String> codes = new TreeSet<>();
-		try {
-			for (Voice v : GoogleTTSProvider.listAllSupportedVoices()) {
-				codes.add(v.getName().substring(0, 6));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		for (String s : codes) {
-			System.out.println(s);
-		}
+		return voicesForLanguage;
 	}
 
 	public String translate(String src, String dst, String message) {
@@ -379,5 +390,19 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 			log.error(e.getMessage(), e);
 		}
 		return "";
+	}
+
+	public static void main(String[] args) {
+		Set<String> codes = new TreeSet<>();
+		try {
+			for (Voice v : GoogleTTSProvider.listAllSupportedVoices(null)) {
+				codes.add(v.getName().substring(0, 6));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		for (String s : codes) {
+			System.out.println(s);
+		}
 	}
 }

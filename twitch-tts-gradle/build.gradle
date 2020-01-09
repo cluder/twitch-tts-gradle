@@ -22,16 +22,25 @@ repositories {
 }
 
 dependencies {
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    //compile 'org.apache.commons:commons-math3:3.6.1'
+
+    // ---------------------------------------------
+    // google TTS runtime
     compile 'com.google.cloud:google-cloud-texttospeech:0.114.0-beta'
     compile 'com.google.cloud:google-cloud-translate:1.93.0'
     compile 'uk.co.caprica:vlcj:4.2.0'
+    // ---------------------------------------------
     
-    // mary runtime
+    // ---------------------------------------------
+    // amazon polly TTS runtime
+    compile 'com.amazonaws:aws-java-sdk-s3'
+	compile group: 'com.amazonaws', name: 'aws-java-sdk-polly', version: '1.11.702'
+    // ---------------------------------------------
+    
+    // ---------------------------------------------
+    // mary TTS runtime
     compile group: 'de.dfki.mary', name: 'marytts-runtime', version: '5.2'
     // mary voice english
-    compile group: 'de.dfki.mary', name: 'voice-cmu-slt-hsmm', version: '5.2'
+    // compile group: 'de.dfki.mary', name: 'voice-cmu-slt-hsmm', version: '5.2'
     // mary voice german
     compile group: 'de.dfki.mary', name: 'voice-dfki-pavoque-neutral-hsmm', version: '5.2'
     compile group: 'de.dfki.mary', name: 'voice-bits1-hsmm', version: '5.2'
@@ -40,6 +49,7 @@ dependencies {
     // mary languages
 	compile group: 'de.dfki.mary', name: 'marytts-lang-de', version: '5.2'
 	compile group: 'de.dfki.mary', name: 'marytts-lang-en', version: '5.2'
+	//----------------------------------------------------
     
     
     // we need a custom pircbotx build, which uses the newer guava libraries

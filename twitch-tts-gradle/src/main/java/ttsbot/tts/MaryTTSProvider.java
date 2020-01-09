@@ -17,6 +17,9 @@ import marytts.exceptions.MaryConfigurationException;
 import ttsbot.util.Utils;
 
 public class MaryTTSProvider implements TTSProvider {
+	public static final String DEFAULT_LANG = "de";
+	public static final String DEFAULT_VOICE = "bits1-hsmm";
+
 	private String lang = DEFAULT_LANG;
 	private String preferredVoice = "";
 
@@ -41,14 +44,25 @@ public class MaryTTSProvider implements TTSProvider {
 	}
 
 	@Override
-	public Collection<String> listSupportedVoices() {
-		Set<String> availableVoices = marytts.getAvailableVoices();
+	public void setDefault() {
+		lang = DEFAULT_LANG;
+		preferredVoice = DEFAULT_VOICE;
+	}
+
+	@Override
+	public Collection<String> listSupportedVoices(String lang) {
+		Set<String> availableVoices = marytts.getAvailableVoices(Locale.forLanguageTag(lang));
 		return availableVoices;
 	}
 
 	@Override
 	public void setVoice(String value) {
 		preferredVoice = value;
+	}
+
+	@Override
+	public String getVoice() {
+		return preferredVoice;
 	}
 
 	public List<String> getKnownLanguages() {
@@ -60,6 +74,15 @@ public class MaryTTSProvider implements TTSProvider {
 			if (lang.startsWith(dst)) {
 				return true;
 			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isKnownVoice(String lang) {
+		Collection<String> listSupportedVoices = listSupportedVoices(getLang());
+		if (listSupportedVoices.contains(lang)) {
+			return true;
 		}
 		return false;
 	}

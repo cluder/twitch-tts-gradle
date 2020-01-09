@@ -1,7 +1,6 @@
 package ttsbot.tts;
 
 import java.util.Collection;
-import java.util.List;
 
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
 
@@ -12,9 +11,13 @@ public interface TTSProvider {
 
 	public static final int DEFAULT_VOLUME = 0;
 	public static final int DEFAULT_PITCH = 0;
-	public static final String DEFAULT_LANG = "de";
 
 	public String getName();
+
+	/**
+	 * Sets sane default values for voice and language
+	 */
+	public void setDefault();
 
 	boolean isSupported(TTSFeature f);
 
@@ -36,7 +39,7 @@ public interface TTSProvider {
 
 	public boolean setLang(String value);
 
-	public List<String> getKnownLanguages();
+	public Collection<String> getKnownLanguages();
 
 	public boolean setGender(String value);
 
@@ -55,7 +58,11 @@ public interface TTSProvider {
 
 	public boolean isKnownLanguage(String lang);
 
-	public Collection<String> listSupportedVoices();
+	public boolean isKnownVoice(String lang);
+
+	public Collection<String> listSupportedVoices(String lang);
+
+	public String getVoice();
 
 	public void setVoice(String item);
 }

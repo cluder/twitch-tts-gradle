@@ -266,6 +266,10 @@ public class SwingUI extends JFrame {
 		panel.add(btnSpeak);
 
 		comboBoxTTSProvider = new JComboBox<String>();
+		comboBoxLanguage = new JComboBox<>();
+		comboBoxVoice = new JComboBox<String>();
+		comboBoxGender = new JComboBox<>();
+
 		comboBoxTTSProvider.setBounds(161, 263, 126, 20);
 		for (TTSProvider p : bot.getTtsProviders()) {
 			comboBoxTTSProvider.addItem(p.getName());
@@ -276,12 +280,7 @@ public class SwingUI extends JFrame {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					// change TTS provider
 					String ttsProviderName = (String) e.getItem();
-					// use hashmap for tts providers ?
-					for (TTSProvider p : bot.getTtsProviders()) {
-						if (p.getName().equals(ttsProviderName)) {
-							bot.setTts(p);
-						}
-					}
+					bot.setTTSProvider(ttsProviderName);
 
 					// re-populate language dependent combo boxes
 					initLanguageComboBox(bot);
@@ -291,11 +290,11 @@ public class SwingUI extends JFrame {
 		});
 		panel.add(comboBoxTTSProvider);
 
-		comboBoxLanguage = new JComboBox<>();
 		comboBoxLanguage.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					bot.getTts().setLang((String) e.getItem());
+					initVoiceComboBox(bot);
 				}
 			}
 		});
@@ -303,7 +302,6 @@ public class SwingUI extends JFrame {
 		initLanguageComboBox(bot);
 		panel.add(comboBoxLanguage);
 
-		comboBoxVoice = new JComboBox<String>();
 		comboBoxVoice.setBounds(161, 327, 126, 20);
 		comboBoxVoice.addItemListener(new ItemListener() {
 			@Override
@@ -320,7 +318,6 @@ public class SwingUI extends JFrame {
 		lblGender.setBounds(10, 361, 98, 14);
 		panel.add(lblGender);
 
-		comboBoxGender = new JComboBox<>();
 		comboBoxGender.addItem("Male");
 		comboBoxGender.addItem("Female");
 		comboBoxGender.addItem("Neutral");
@@ -486,7 +483,7 @@ public class SwingUI extends JFrame {
 
 	private void initVoiceComboBox(TwitchBot bot) {
 		comboBoxVoice.removeAllItems();
-		for (String v : bot.getTts().listSupportedVoices()) {
+		for (String v : bot.getTts().listSupportedVoices(bot.getTts().getLang())) {
 			comboBoxVoice.addItem(v);
 		}
 	}
@@ -519,7 +516,6 @@ public class SwingUI extends JFrame {
 		this.spinnerPitch.setValue((int) value);
 	}
 
-	// TODO: sometimes the spinner dosent show the selected index
 	public void updateLang(String value) {
 		int matchedIdx = -1;
 		for (int i = 0; i < comboBoxLanguage.getItemCount(); i++) {
@@ -527,7 +523,7 @@ public class SwingUI extends JFrame {
 			if (itemAt.startsWith(value)) {
 				matchedIdx = i;
 			}
-			if (itemAt.startsWith(value)) {
+			if (itemAt.equals(value)) {
 				// exact match
 				matchedIdx = i;
 				break;
