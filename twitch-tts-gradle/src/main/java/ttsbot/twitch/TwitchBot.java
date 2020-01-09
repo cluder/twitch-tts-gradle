@@ -1,10 +1,10 @@
 package ttsbot.twitch;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +23,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ttsbot.tts.GoogleTTS;
+import marytts.exceptions.MaryConfigurationException;
+import ttsbot.tts.GoogleTTSProvider;
+import ttsbot.tts.MaryTTSProvider;
+import ttsbot.tts.TTSProvider;
+import ttsbot.tts.TTSProvider.TTSFeature;
 import ttsbot.ui.SwingUI;
 import ttsbot.util.Settings;
 import ttsbot.util.Utils;
@@ -37,18 +41,23 @@ public class TwitchBot extends ListenerAdapter {
 	private final static Logger log = LoggerFactory.getLogger(TwitchBot.class);
 
 	PircBotX pircBot;
-	GoogleTTS tts;
+	TTSProvider tts;
 	private String channel;
 	SwingUI ui;
 	private MediaPlayer mediaPlayer = null;
 
-	public TwitchBot() throws UnsupportedEncodingException {
+	List<TTSProvider> ttsProviders = new ArrayList<>();
+
+	public TwitchBot() throws Exception {
 
 		final Settings settings = Settings.get();
 		if (settings == null) {
 			log.error("settings null");
 		}
-		tts = new GoogleTTS();
+
+		registerTTSProviders();
+
+		tts = getDefaultTTSProvider();
 
 		channel = settings.get(Settings.CHANNEL);
 		final String serverPassword = settings.get(Settings.OAUTH_TOKEN);
@@ -77,8 +86,45 @@ public class TwitchBot extends ListenerAdapter {
 		}
 	}
 
+	private void registerTTSProviders() {
+		// try to instantiate TTs providers
+		try {
+			TTSProvider provider = new GoogleTTSProvider();
+			ttsProviders.add(provider);
+		} catch (Exception e) {
+			log.info("could not instantiate Google TTS");
+		}
+
+		try {
+			TTSProvider provider = new MaryTTSProvider();
+			ttsProviders.add(provider);
+		} catch (Exception e) {
+			log.info("could not instantiate Mary TTS");
+		}
+	}
+
+	/**
+	 * Returns a TTS Provider (Google or Mary as fallback)
+	 * 
+	 * @throws MaryConfigurationException
+	 */
+	private TTSProvider getDefaultTTSProvider() throws MaryConfigurationException {
+		if (ttsProviders.isEmpty()) {
+			return null;
+		}
+		return ttsProviders.get(0);
+	}
+
+	public void setTts(TTSProvider tts) {
+		this.tts = tts;
+	}
+
 	public MediaPlayer getMediaPlayer() {
 		return mediaPlayer;
+	}
+
+	public List<TTSProvider> getTtsProviders() {
+		return ttsProviders;
 	}
 
 	@Override
@@ -160,12 +206,12 @@ public class TwitchBot extends ListenerAdapter {
 		String msgWithoutCommand = getMsgWithoutCommand(message, command);
 
 		// pitch
-		if (command.equals("!pitch")) {
+		if (command.equals("!pitch") && tts.isSupported(TTSFeature.PITCH)) {
 			if (msgWithoutCommand.isEmpty()) {
 				sendMsg("Current pitch: " + tts.getPitch());
 			} else {
 				String parsed = msgWithoutCommand;
-				int parsedInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTS.DEFAULT_PITCH);
+				int parsedInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTSProvider.DEFAULT_PITCH);
 				final boolean result = tts.setPitch(parsedInt);
 				if (result) {
 					sendMsg("pitch set to " + tts.getPitch());
@@ -183,9 +229,9 @@ public class TwitchBot extends ListenerAdapter {
 			} else {
 
 				try {
-					double value = GoogleTTS.DEFAULT_VOLUME;
+					float value = GoogleTTSProvider.DEFAULT_VOLUME;
 					try {
-						value = Double.parseDouble(msgWithoutCommand);
+						value = Float.parseFloat(msgWithoutCommand);
 					} catch (Exception e) {
 						log.error(e.getMessage(), e);
 					}
@@ -232,16 +278,16 @@ public class TwitchBot extends ListenerAdapter {
 			}
 		}
 
-		// speakrate
+		// speak rate
 		if (command.equals("!speakrate")) {
 			if (msgWithoutCommand.isEmpty()) {
-				sendMsg("Current speakrate: " + tts.getSpeakrate());
+				sendMsg("Current speakrate: " + tts.getSpeakingRate());
 			} else {
 				double parsedDouble = Double.parseDouble(msgWithoutCommand);
 				double newRate = Utils.constrainToRange(parsedDouble, 0.25, 4);
 				boolean success = tts.setSpeakingRate(newRate);
 				if (success) {
-					sendMsg("Speakrate set to:" + tts.getSpeakrate());
+					sendMsg("Speakrate set to:" + tts.getSpeakingRate());
 					ui.updateSpeakrate(newRate);
 				} else {
 					sendMsg("Speakrate has to be between -20 and +20");
@@ -283,7 +329,7 @@ public class TwitchBot extends ListenerAdapter {
 				if (known) {
 					try {
 						tts.syntesizeAndPlay(translate, dst, null);
-					} catch (IOException e) {
+					} catch (Exception e) {
 						log.error(e.getMessage(), e);
 					}
 				}
@@ -390,7 +436,7 @@ public class TwitchBot extends ListenerAdapter {
 		return pircBot.isConnected();
 	}
 
-	public GoogleTTS getTts() {
+	public TTSProvider getTts() {
 		return tts;
 	}
 

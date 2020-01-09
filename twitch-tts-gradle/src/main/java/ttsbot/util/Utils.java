@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
@@ -46,8 +47,15 @@ public class Utils {
 
 	/**
 	 * Plays a .wav audiostream.
+	 * 
+	 * @param volChange volume change in decibel + / - (default 0)
 	 */
 	public static void playAudio(AudioInputStream audioInputStream) throws LineUnavailableException, IOException {
+		playAudio(audioInputStream, 0);
+	}
+
+	public static void playAudio(AudioInputStream audioInputStream, float volChange)
+			throws LineUnavailableException, IOException {
 		try {
 			lock.tryAcquire(30, TimeUnit.SECONDS);
 			Line line;
@@ -56,6 +64,10 @@ public class Utils {
 			Clip clip = (Clip) line;
 
 			clip.open(audioInputStream);
+
+			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			gainControl.setValue(volChange);
+
 			clip.addLineListener(new LineListener() {
 
 				@Override
@@ -94,10 +106,10 @@ public class Utils {
 	/**
 	 * Plays the given .wav content.
 	 */
-	public static void playWAV(ByteString audioContents) {
+	public static void playWAV(ByteString audioContents, float volume) {
 		try (InputStream newInputStream = audioContents.newInput();
 				AudioInputStream ais = AudioSystem.getAudioInputStream(newInputStream)) {
-			playAudio(ais);
+			playAudio(ais, volume);
 
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
 			log.error(e.getMessage(), e);

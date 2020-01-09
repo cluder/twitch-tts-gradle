@@ -3,6 +3,8 @@ package ttsbot.tts;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -38,15 +40,21 @@ import ttsbot.util.Utils;
 /**
  * Helper for Google TTS Api Calls.<br>
  */
-public class GoogleTTS implements CredentialsProvider {
-	private final static Logger log = LoggerFactory.getLogger(GoogleTTS.class);
+public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
+	private final static Logger log = LoggerFactory.getLogger(GoogleTTSProvider.class);
 
-	public static final int DEFAULT_VOLUME = 0;
-	public static final int DEFAULT_PITCH = 0;
-	public static final String DEFAULT_LANG = "de";
+	// TTS settings
+	private double speakingRate = 0;
+	private double pitch = DEFAULT_PITCH;
+	private float volume = DEFAULT_VOLUME;
+	private String lang = DEFAULT_LANG;
+	private SsmlVoiceGender gender = SsmlVoiceGender.MALE;
+	private String preferredVoice = "";
 
-	// known TTS languages
-	private static List<String> knownLanguages = Lists.newArrayList(//
+	// google API credentials
+	GoogleCredentials credentials;
+
+	protected List<String> knownLanguages = Lists.newArrayList(//
 			"de", //
 			"en-GB", //
 			"es", //
@@ -76,23 +84,21 @@ public class GoogleTTS implements CredentialsProvider {
 			"uk", //
 			"vi" //
 	);
+	protected Set<TTSFeature> knownFeatures = EnumSet.allOf(TTSFeature.class);
 
-	// TTS settings
-	private double speakingRate = 0;
-	private double pitch = DEFAULT_PITCH;
-	private double volume = DEFAULT_VOLUME;
-	private String lang = DEFAULT_LANG;
-	private SsmlVoiceGender gender = SsmlVoiceGender.MALE;
-
-	// google API credentials
-	GoogleCredentials credentials;
-
-	public GoogleTTS() {
+	public GoogleTTSProvider() throws IOException {
+		super();
 		try {
 			this.credentials = loadCredentials("google-credentials.json");
 		} catch (IOException e) {
 			log.warn(e.getMessage(), e);
+			throw e;
 		}
+	}
+
+	@Override
+	public String getName() {
+		return "Google TTS";
 	}
 
 	public List<String> getKnownLanguages() {
@@ -108,11 +114,21 @@ public class GoogleTTS implements CredentialsProvider {
 		return false;
 	}
 
+	@Override
+	public void setVoice(String value) {
+		preferredVoice = value;
+	}
+
+	@Override
+	public boolean isSupported(TTSFeature f) {
+		return knownFeatures.contains(f);
+	}
+
 	public String getLang() {
 		return lang;
 	}
 
-	public double getVolume() {
+	public float getVolume() {
 		return volume;
 	}
 
@@ -124,10 +140,7 @@ public class GoogleTTS implements CredentialsProvider {
 		return credentials;
 	}
 
-	/**
-	 * Sets the Volume in % (more or less), values 0-200 are expected.
-	 */
-	public boolean setVolume(double volume) {
+	public boolean setVolume(float volume) {
 		if (volume >= -96 && volume <= 16) {
 			this.volume = volume;
 			return true;
@@ -233,12 +246,13 @@ public class GoogleTTS implements CredentialsProvider {
 			VoiceSelectionParams deVoiceMale = VoiceSelectionParams.newBuilder() //
 					.setLanguageCode(langOverride != null ? langOverride : lang) //
 					.setSsmlGender(genderOverride != null ? genderOverride : gender) //
+					.setName(preferredVoice) //
 					.build();
 
 			// Select the type of audio file you want returned
 			AudioConfig audioConfig = AudioConfig.newBuilder()
 					.setAudioEncoding(com.google.cloud.texttospeech.v1.AudioEncoding.LINEAR16)//
-					.setVolumeGainDb(volume)//
+					// .setVolumeGainDb(volume) volume is handled by the player
 					.setSpeakingRate(speakingRate) // 0.25 - 4
 					.setPitch(pitch) // --20 - +20
 					.build();
@@ -251,7 +265,7 @@ public class GoogleTTS implements CredentialsProvider {
 			ByteString audioContents = response.getAudioContent();
 
 			// play wav
-			Utils.playWAV(audioContents);
+			Utils.playWAV(audioContents, volume);
 		} catch (Throwable e) {
 			log.warn(e.getMessage(), e);
 		}
@@ -261,7 +275,7 @@ public class GoogleTTS implements CredentialsProvider {
 		return gender.toString().toLowerCase();
 	}
 
-	public double getSpeakrate() {
+	public double getSpeakingRate() {
 		return speakingRate;
 	}
 
@@ -269,11 +283,24 @@ public class GoogleTTS implements CredentialsProvider {
 		return pitch;
 	}
 
+	@Override
+	public List<String> listSupportedVoices() {
+		List<String> voiceNames = new ArrayList<>();
+		try {
+			List<Voice> listAllSupportedVoices = listAllSupportedVoices();
+			listAllSupportedVoices.stream().forEach(v -> voiceNames.add(v.getName()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return voiceNames;
+	}
+
 	static public List<Voice> listAllSupportedVoices() throws Exception {
 		// Instantiates a client
 
 		final Builder b = TextToSpeechSettings.newBuilder();
-		b.setCredentialsProvider(new GoogleTTS());
+		b.setCredentialsProvider(new GoogleTTSProvider());
 
 		try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create(b.build())) {
 			// Builds the text to speech list voices request
@@ -307,7 +334,7 @@ public class GoogleTTS implements CredentialsProvider {
 	public static void main(String[] args) {
 		Set<String> codes = new TreeSet<>();
 		try {
-			for (Voice v : GoogleTTS.listAllSupportedVoices()) {
+			for (Voice v : GoogleTTSProvider.listAllSupportedVoices()) {
 				codes.add(v.getName().substring(0, 6));
 			}
 		} catch (Exception e) {
@@ -353,5 +380,4 @@ public class GoogleTTS implements CredentialsProvider {
 		}
 		return "";
 	}
-
 }
