@@ -323,11 +323,11 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	/**
 	 * Returns all voices matching the given language.
 	 */
-	static public List<Voice> listAllSupportedVoices(String lang) throws Exception {
+	public List<Voice> listAllSupportedVoices(String lang) throws Exception {
 		List<Voice> voicesForLanguage = new ArrayList<>();
 
 		final Builder b = TextToSpeechSettings.newBuilder();
-		b.setCredentialsProvider(new GoogleTTSProvider());
+		b.setCredentialsProvider(this);
 
 		try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create(b.build())) {
 			// Builds the text to speech list voices request
@@ -392,10 +392,12 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return "";
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		GoogleTTSProvider tts = new GoogleTTSProvider();
 		Set<String> codes = new TreeSet<>();
 		try {
-			for (Voice v : GoogleTTSProvider.listAllSupportedVoices(null)) {
+
+			for (Voice v : tts.listAllSupportedVoices(null)) {
 				codes.add(v.getName().substring(0, 6));
 			}
 		} catch (Exception e) {
@@ -403,6 +405,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		}
 		for (String s : codes) {
 			System.out.println(s);
+			log.info(s);
 		}
 	}
 }
