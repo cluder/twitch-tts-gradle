@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -11,6 +13,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.polly.AmazonPolly;
 import com.amazonaws.services.polly.AmazonPollyClientBuilder;
 import com.amazonaws.services.polly.model.DescribeVoicesRequest;
@@ -18,15 +27,22 @@ import com.amazonaws.services.polly.model.DescribeVoicesResult;
 import com.amazonaws.services.polly.model.OutputFormat;
 import com.amazonaws.services.polly.model.SynthesizeSpeechRequest;
 import com.amazonaws.services.polly.model.SynthesizeSpeechResult;
+import com.amazonaws.services.translate.AmazonTranslate;
+import com.amazonaws.services.translate.AmazonTranslateClient;
+import com.amazonaws.services.translate.model.TranslateTextRequest;
+import com.amazonaws.services.translate.model.TranslateTextResult;
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
 
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
-public class AmazonPollyTTSProvider implements TTSProvider {
+public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvider {
+	private final static Logger log = LoggerFactory.getLogger(AmazonPollyTTSProvider.class);
+
 	protected Set<TTSFeature> knownFeatures = EnumSet.allOf(TTSFeature.class);
 	public static final String DEFAULT_LANG = "de-DE";
 	public static final String DEFAULT_VOICE = "Marlene";
+	final String REGION = "eu-west-1";
 
 	// TTS settings
 	private double speakingRate = 0;
@@ -36,19 +52,41 @@ public class AmazonPollyTTSProvider implements TTSProvider {
 	private String gender = "neutral";
 	private String preferredVoice = "";
 
-	protected Collection<String> knownLanguages = null;
+	private Collection<String> knownLanguagesCached = null;
 
 	AmazonPolly client;
+	AWSCredentials awsCredentials;
 
 	public AmazonPollyTTSProvider() {
 		AmazonPollyClientBuilder clientBuilder = AmazonPollyClientBuilder.standard();
+		clientBuilder.setCredentials(this);
 		clientBuilder.setRegion("eu-west-1");
 		client = clientBuilder.build();
 	}
 
 	@Override
 	public String getName() {
-		return "Amazon Polly";
+		return "amazon";
+	}
+
+	@Override
+	public AWSCredentials getCredentials() {
+		final String fileName = "aws-credentials.properties";
+		final Path path = Paths.get(fileName);
+		try {
+			awsCredentials = new PropertiesCredentials(path.toFile());
+		} catch (IllegalArgumentException | IOException e) {
+			log.error("error loading credentials", e);
+		}
+		return awsCredentials;
+	}
+
+	/**
+	 * AWS credentials refresh
+	 */
+	@Override
+	public void refresh() {
+
 	}
 
 	@Override
@@ -102,7 +140,7 @@ public class AmazonPollyTTSProvider implements TTSProvider {
 
 	@Override
 	public Collection<String> getKnownLanguages() {
-		if (knownLanguages == null) {
+		if (knownLanguagesCached == null) {
 			// fetch known languages
 			Set<String> languages = new TreeSet<>();
 			DescribeVoicesRequest voicesRequest = new DescribeVoicesRequest();
@@ -113,9 +151,9 @@ public class AmazonPollyTTSProvider implements TTSProvider {
 				voicesRequest.setNextToken(nextToken);
 				voicesResult.getVoices().stream().forEach(v -> languages.add(v.getLanguageCode()));
 			} while (nextToken != null);
-			knownLanguages = languages;
+			knownLanguagesCached = languages;
 		}
-		return knownLanguages;
+		return knownLanguagesCached;
 	}
 
 	@Override
@@ -178,12 +216,24 @@ public class AmazonPollyTTSProvider implements TTSProvider {
 
 	@Override
 	public String translate(String src, String dst, String txt) {
-		return null;
+		try {
+			AmazonTranslate translate = AmazonTranslateClient.builder().withCredentials(this).withRegion(REGION)
+					.build();
+
+			TranslateTextRequest request = new TranslateTextRequest()//
+					.withText(txt).withSourceLanguageCode(src)//
+					.withTargetLanguageCode(dst);
+			TranslateTextResult result = translate.translateText(request);
+			return result.getTranslatedText();
+		} catch (Exception e) {
+			log.error("error during translate", e);
+		}
+		return "";
 	}
 
 	@Override
 	public boolean isKnownLanguage(String value) {
-		for (String lang : knownLanguages) {
+		for (String lang : knownLanguagesCached) {
 			if (lang.startsWith(value)) {
 				return true;
 			}

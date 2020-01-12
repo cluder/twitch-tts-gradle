@@ -108,7 +108,6 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	public void setDefault() {
 		lang = DEFAULT_LANG;
 		preferredVoice = DEFAULT_VOICE;
-
 	}
 
 	public List<String> getKnownLanguages() {
@@ -152,6 +151,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return lang;
 	}
 
+	@Override
 	public float getVolume() {
 		return volume;
 	}
@@ -164,6 +164,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return credentials;
 	}
 
+	@Override
 	public boolean setVolume(float volume) {
 		if (volume >= -96 && volume <= 16) {
 			this.volume = volume;
@@ -172,6 +173,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		return false;
 	}
 
+	@Override
 	public boolean setSpeakingRate(double speakingRate) {
 		this.speakingRate = speakingRate;
 		if (this.speakingRate < 0.25) {
