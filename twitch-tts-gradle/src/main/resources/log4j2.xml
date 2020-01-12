@@ -17,7 +17,7 @@
 		</Console>
 
 		<RollingFile name="file-log"
-			fileName="log/bot.txt"
+			fileName="log/bot.log"
 			filePattern="logs/log-%d{yyyy-MM-dd}.txt">
 			<PatternLayout>
 				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
