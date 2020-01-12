@@ -17,7 +17,7 @@
 		</Console>
 
 		<RollingFile name="file-log"
-			fileName="logs/log.txt"
+			fileName="log/bot.txt"
 			filePattern="logs/log-%d{yyyy-MM-dd}.txt">
 			<PatternLayout>
 				<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -28,11 +28,11 @@
 			</Policies>
 		</RollingFile>
 	</Appenders>
-
+	
 	<Loggers>
 		<Root level="info">
-			<AppenderRef ref="Console" />
-			<AppenderRef ref="file-log" />
+			<AppenderRef ref="Console" level="info"/>
+			<AppenderRef ref="file-log" level="debug"/> 
 		</Root>
 	</Loggers>
 </Configuration>
