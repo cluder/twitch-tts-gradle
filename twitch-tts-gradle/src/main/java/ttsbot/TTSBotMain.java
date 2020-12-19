@@ -1,5 +1,7 @@
 package ttsbot;
 
+import java.nio.file.Paths;
+
 import javax.swing.JOptionPane;
 
 import org.apache.commons.lang3.JavaVersion;
@@ -32,6 +34,7 @@ public class TTSBotMain {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
+
 	}
 
 	public static void main(String[] args) {
@@ -64,5 +67,9 @@ public class TTSBotMain {
 			System.exit(0);
 		}
 
+		if (!Paths.get("oauth.properties").toFile().exists()) {
+			JOptionPane.showMessageDialog(null, "oauth.properties not found", "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(0);
+		}
 	}
 }

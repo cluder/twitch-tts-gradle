@@ -45,8 +45,9 @@ dependencies {
     // ---------------------------------------------
     // mary TTS runtime
     compile group: 'de.dfki.mary', name: 'marytts-runtime', version: '5.2'
+    
     // mary voice english
-    // compile group: 'de.dfki.mary', name: 'voice-cmu-slt-hsmm', version: '5.2'
+	compile group: 'de.dfki.mary', name: 'voice-cmu-rms-hsmm', version: '5.2'
     // mary voice german
     compile group: 'de.dfki.mary', name: 'voice-dfki-pavoque-neutral-hsmm', version: '5.2'
     compile group: 'de.dfki.mary', name: 'voice-bits1-hsmm', version: '5.2'
@@ -56,11 +57,7 @@ dependencies {
 	compile group: 'de.dfki.mary', name: 'marytts-lang-de', version: '5.2'
 	compile group: 'de.dfki.mary', name: 'marytts-lang-en', version: '5.2'
 	
-	compile group: 'de.dfki.mary', name: 'voice-cmu-rms-hsmm', version: '5.2'
-	
-	
 	//----------------------------------------------------
-    
     
     // we need a custom pircbotx build, which uses the newer guava libraries
     compile files('libs/pircbotx-2.2-CLU.jar')
@@ -77,6 +74,7 @@ dependencies {
 jar {
 	manifest {
 		attributes 'Main-Class': 'ttsbot.TTSBotMain'
+		attributes 'SplashScreen-Image': 'splash.png'
 	}
 	from {
 		configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
