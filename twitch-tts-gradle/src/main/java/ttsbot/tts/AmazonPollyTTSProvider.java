@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.polly.AmazonPolly;
 import com.amazonaws.services.polly.AmazonPollyClientBuilder;
@@ -39,17 +38,15 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer;
 public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvider {
 	private final static Logger log = LoggerFactory.getLogger(AmazonPollyTTSProvider.class);
 
-	protected Set<TTSFeature> knownFeatures = EnumSet.allOf(TTSFeature.class);
+	protected Set<TTSFeature> knownFeatures = EnumSet.noneOf(TTSFeature.class);
+
 	public static final String DEFAULT_LANG = "de-DE";
 	public static final String DEFAULT_VOICE = "Marlene";
 	final String REGION = "eu-west-1";
 
 	// TTS settings
-	private double speakingRate = 0;
-	private double pitch = DEFAULT_PITCH;
 	private float volume = DEFAULT_VOLUME;
 	private String lang = DEFAULT_LANG;
-	private String gender = "neutral";
 	private String preferredVoice = "";
 
 	private Collection<String> knownLanguagesCached = null;
@@ -58,6 +55,9 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 	AWSCredentials awsCredentials;
 
 	public AmazonPollyTTSProvider() {
+		if (getCredentialFile() == null) {
+			throw new RuntimeException("credentials not found");
+		}
 		AmazonPollyClientBuilder clientBuilder = AmazonPollyClientBuilder.standard();
 		clientBuilder.setCredentials(this);
 		clientBuilder.setRegion("eu-west-1");
@@ -70,15 +70,33 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 	}
 
 	@Override
+	public boolean isAvailable() {
+		Collection<String> listSupportedVoices = listSupportedVoices(DEFAULT_LANG);
+		if (listSupportedVoices.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public AWSCredentials getCredentials() {
-		final String fileName = "aws-credentials.properties";
-		final Path path = Paths.get(fileName);
+		final Path path = getCredentialFile();
+
 		try {
 			awsCredentials = new PropertiesCredentials(path.toFile());
 		} catch (IllegalArgumentException | IOException e) {
 			log.error("error loading credentials", e);
 		}
 		return awsCredentials;
+	}
+
+	private Path getCredentialFile() {
+		final String fileName = "aws-credentials.properties";
+		final Path path = Paths.get(fileName);
+		if (path.toFile().exists()) {
+			return path;
+		}
+		return null;
 	}
 
 	/**
@@ -101,25 +119,12 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 	}
 
 	@Override
-	public double getPitch() {
-		return pitch;
-	}
-
-	@Override
-	public boolean setPitch(int value) {
-		// TODO checks
-		this.pitch = value;
-		return true;
-	}
-
-	@Override
 	public float getVolume() {
 		return volume;
 	}
 
 	@Override
 	public boolean setVolume(float value) {
-		// TODO checks
 		this.volume = value;
 		return true;
 	}
@@ -158,26 +163,12 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 
 	@Override
 	public boolean setGender(String value) {
-		this.gender = value;
-		return true;
+		return false;
 	}
 
 	@Override
 	public String getGender() {
-		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public double getSpeakingRate() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public boolean setSpeakingRate(double value) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override
@@ -206,12 +197,29 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Exception caught: " + e);
+			log.error("Exception caught: " + e);
 		}
 
 		MediaPlayer mediaPlayer = new MediaPlayerFactory().mediaPlayers().newMediaPlayer();
-		mediaPlayer.media().play(tmpFile.getAbsolutePath());
+		Thread.sleep(50);
+		int volPercent = calcVolume(getVolume());
 
+		mediaPlayer.audio().setVolume(volPercent);
+		mediaPlayer.media().play(tmpFile.getAbsolutePath());
+	}
+
+	private int calcVolume(float volume) {
+		if (volume > 0) {
+			// 0 - 6 = 100 - 200
+			float volChange = 100.0f / 6 * volume;
+			return (int) (100 + volChange);
+		}
+		if (volume < 0) {
+			// -70 - 0 = 0- 100
+			float volChange = 100.0f / 70 * volume;
+			return (int) (100 + volChange);
+		}
+		return 100;
 	}
 
 	@Override
@@ -234,7 +242,7 @@ public class AmazonPollyTTSProvider implements TTSProvider, AWSCredentialsProvid
 	@Override
 	public boolean isKnownLanguage(String value) {
 		for (String lang : knownLanguagesCached) {
-			if (lang.startsWith(value)) {
+			if (lang.equals(value)) {
 				return true;
 			}
 		}

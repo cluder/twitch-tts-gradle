@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -57,7 +58,13 @@ public class Utils {
 	public static void playAudio(AudioInputStream audioInputStream, float volChange)
 			throws LineUnavailableException, IOException {
 		try {
-			lock.tryAcquire(30, TimeUnit.SECONDS);
+			lock.tryAcquire(10, TimeUnit.SECONDS);
+
+			AudioFormat format = audioInputStream.getFormat();
+
+			log.info(String.format("%s, bits:%s, channels:%s, samplerate:%s, framerate:%s ", //
+					format.getEncoding(), format.getSampleSizeInBits(), //
+					format.getChannels(), format.getSampleRate(), format.getFrameRate()));
 			Line line;
 			line = AudioSystem.getLine(new Line.Info(Clip.class));
 
@@ -65,7 +72,11 @@ public class Utils {
 
 			clip.open(audioInputStream);
 
+			// min / max: -80 / 6
 			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			volChange = Math.max(volChange, -79.9f);
+			volChange = Math.min(volChange, 5.9f);
+
 			gainControl.setValue(volChange);
 
 			clip.addLineListener(new LineListener() {
@@ -83,7 +94,7 @@ public class Utils {
 				}
 			});
 			clip.start();
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			lock.release();
 		}

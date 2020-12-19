@@ -30,16 +30,16 @@ dependencies {
 
     // ---------------------------------------------
     // google TTS runtime
-    compile 'com.google.cloud:google-cloud-texttospeech:0.117.0-beta'
-    compile 'com.google.cloud:google-cloud-translate:1.94.2'
-    compile 'uk.co.caprica:vlcj:4.2.0'
+    compile 'com.google.cloud:google-cloud-texttospeech:1.2.7'
+    compile 'com.google.cloud:google-cloud-translate:1.95.5'
+    compile 'uk.co.caprica:vlcj:4.7.0'
     // ---------------------------------------------
     
     // ---------------------------------------------
     // amazon polly TTS runtime
    // compile 'com.amazonaws:aws-java-sdk-s3:1.11.705'
-    compile 'com.amazonaws:aws-java-sdk-translate:1.11.705'
-	compile 'com.amazonaws:aws-java-sdk-polly:1.11.702'
+    compile 'com.amazonaws:aws-java-sdk-translate:1.11.922'
+	compile 'com.amazonaws:aws-java-sdk-polly:1.11.922'
     // ---------------------------------------------
     
     // ---------------------------------------------
@@ -55,6 +55,10 @@ dependencies {
     // mary languages
 	compile group: 'de.dfki.mary', name: 'marytts-lang-de', version: '5.2'
 	compile group: 'de.dfki.mary', name: 'marytts-lang-en', version: '5.2'
+	
+	compile group: 'de.dfki.mary', name: 'voice-cmu-rms-hsmm', version: '5.2'
+	
+	
 	//----------------------------------------------------
     
     

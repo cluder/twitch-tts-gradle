@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -32,7 +33,6 @@ import ttsbot.tts.TTSProvider;
 import ttsbot.tts.TTSProvider.TTSFeature;
 import ttsbot.ui.SwingUI;
 import ttsbot.util.Settings;
-import ttsbot.util.Utils;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
@@ -88,26 +88,33 @@ public class TwitchBot extends ListenerAdapter {
 		}
 	}
 
+	/**
+	 * try to instantiate TTs providers
+	 */
 	private void registerTTSProviders() {
-		// try to instantiate TTs providers
 		try {
 			TTSProvider provider = new GoogleTTSProvider();
-			ttsProviders.add(provider);
+			if (provider.isAvailable()) {
+				ttsProviders.add(provider);
+			}
 		} catch (Exception e) {
 			log.info("could not instantiate Google TTS");
 		}
 
 		try {
 			TTSProvider provider = new MaryTTSProvider();
-			ttsProviders.add(provider);
+			if (provider.isAvailable()) {
+				ttsProviders.add(provider);
+			}
 		} catch (Exception e) {
 			log.info("could not instantiate Mary TTS");
 		}
 
-		// Polly
 		try {
 			TTSProvider provider = new AmazonPollyTTSProvider();
-			ttsProviders.add(provider);
+			if (provider.isAvailable()) {
+				ttsProviders.add(provider);
+			}
 		} catch (Exception e) {
 			log.error("could not instantiate Amazon Polly TTS", e);
 		}
@@ -215,23 +222,6 @@ public class TwitchBot extends ListenerAdapter {
 		command = lowerTrimmed(command);
 		String msgWithoutCommand = getMsgWithoutCommand(message, command);
 
-		// pitch
-		if (command.equals("!pitch") && tts.isSupported(TTSFeature.PITCH)) {
-			if (msgWithoutCommand.isEmpty()) {
-				sendMsg("Current pitch: " + tts.getPitch());
-			} else {
-				String parsed = msgWithoutCommand;
-				int parsedInt = org.pircbotx.Utils.tryParseInt(parsed, GoogleTTSProvider.DEFAULT_PITCH);
-				final boolean result = tts.setPitch(parsedInt);
-				if (result) {
-					sendMsg("pitch set to " + tts.getPitch());
-					ui.updatePitch(tts.getPitch());
-				} else {
-					sendMsg("pitch value has to be between -20 and +20");
-				}
-			}
-		}
-
 		// volume
 		if (command.equals("!vol")) {
 			if (msgWithoutCommand.isEmpty()) {
@@ -265,7 +255,7 @@ public class TwitchBot extends ListenerAdapter {
 			} else {
 				boolean success = tts.setLang(msgWithoutCommand);
 				if (success) {
-					sendMsg("Language set to:" + msgWithoutCommand);
+					sendMsg("Language set to: " + msgWithoutCommand);
 					ui.updateLang(tts.getLang());
 				} else {
 					sendMsg("Language not known, try:" + tts.getKnownLanguages());
@@ -275,32 +265,19 @@ public class TwitchBot extends ListenerAdapter {
 
 		// gender
 		if (command.equals("!gender")) {
-			if (msgWithoutCommand.isEmpty()) {
-				sendMsg("Current gender: " + tts.getGender());
+			if (!tts.isSupported(TTSFeature.GENDER)) {
+				sendMsg("not supported");
 			} else {
-				boolean success = tts.setGender(msgWithoutCommand);
-				if (success) {
-					sendMsg("Gender set to:" + msgWithoutCommand);
-					ui.updateGender(tts.getGender());
+				if (msgWithoutCommand.isEmpty()) {
+					sendMsg("Current gender: " + tts.getGender());
 				} else {
-					sendMsg("Gender must be any of: female/male/neutral");
-				}
-			}
-		}
-
-		// speak rate
-		if (command.equals("!speakrate")) {
-			if (msgWithoutCommand.isEmpty()) {
-				sendMsg("Current speakrate: " + tts.getSpeakingRate());
-			} else {
-				double parsedDouble = Double.parseDouble(msgWithoutCommand);
-				double newRate = Utils.constrainToRange(parsedDouble, 0.25, 4);
-				boolean success = tts.setSpeakingRate(newRate);
-				if (success) {
-					sendMsg("Speakrate set to:" + tts.getSpeakingRate());
-					ui.updateSpeakrate(newRate);
-				} else {
-					sendMsg("Speakrate has to be between -20 and +20");
+					boolean success = tts.setGender(msgWithoutCommand);
+					if (success) {
+						sendMsg("Gender set to:" + msgWithoutCommand);
+						ui.updateGender(tts.getGender());
+					} else {
+						sendMsg("Gender must be any of: female/male/neutral");
+					}
 				}
 			}
 		}
@@ -309,6 +286,7 @@ public class TwitchBot extends ListenerAdapter {
 			if (!msgWithoutCommand.isEmpty()) {
 				if (tts.isKnownVoice(msgWithoutCommand)) {
 					tts.setVoice(msgWithoutCommand);
+					ui.updateVoice(tts.getVoice());
 				} else {
 					Collection<String> voices = tts.listSupportedVoices(tts.getLang());
 					sendMsg("Voice not known, available voices for lang " + tts.getLang() + ": "
@@ -320,18 +298,17 @@ public class TwitchBot extends ListenerAdapter {
 		}
 
 		if (command.equals("!tts")) {
+			String providerNames = ttsProviders.stream().map(p -> p.getName()).collect(Collectors.joining(", "));
 			if (msgWithoutCommand.isEmpty()) {
-				sendMsg("Current TTS Provider: " + tts.getName());
+				sendMsg("Active: " + tts.getName() + "\nAvailable: " + providerNames + "");
 			} else {
 				boolean success = setTTSProvider(msgWithoutCommand);
 				if (success) {
 					tts.setDefault();
+					ui.updateTTS(tts);
+					sendMsg("TTS changed to:" + tts.getName());
 				} else {
-					List<String> providerNames = new ArrayList<>();
-					for (TTSProvider p : ttsProviders) {
-						providerNames.add(p.getName());
-					}
-					sendMsg("Avaliable TTS Providers:" + String.join(", ", providerNames));
+					sendMsg("Avaliable TTS:" + String.join(", ", providerNames));
 				}
 			}
 		}
@@ -339,43 +316,44 @@ public class TwitchBot extends ListenerAdapter {
 		if (command.equals("!speak") || command.equals("!s")) {
 			try {
 				tts.syntesizeAndPlay(msgWithoutCommand);
+				ui.updateInput(msgWithoutCommand);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				sendMsg("Exception " + e.getStackTrace()[0] + " - " + e.getMessage());
 			}
 		}
 
-		if (command.equals("!tr")) {
-			String src = null;
-			String dst = null;
-			final String[] split = msgWithoutCommand.split(" ");
-			if (split.length > 2) {
-				if (split[0].length() == 2) {
-					src = split[0];
-					msgWithoutCommand = msgWithoutCommand.substring(3);
-				}
-				if (split[1].length() == 2) {
-					dst = split[1];
-					msgWithoutCommand = msgWithoutCommand.substring(2);
-				}
-			}
-			if (src == null || dst == null) {
-				sendMsg("!tr <quelle> <ziel> <text>");
-			} else {
-				final String translate = tts.translate(src, dst, msgWithoutCommand);
-				if (translate != null && translate.isEmpty() == false) {
-					sendMsg(translate);
-				}
-				boolean known = tts.isKnownLanguage(dst);
-				if (known) {
-					try {
-						tts.syntesizeAndPlay(translate, dst, null);
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
-					}
-				}
-			}
-		}
+//		if (command.equals("!tr")) {
+//			String src = null;
+//			String dst = null;
+//			final String[] split = msgWithoutCommand.split(" ");
+//			if (split.length > 2) {
+//				if (split[0].length() == 2) {
+//					src = split[0];
+//					msgWithoutCommand = msgWithoutCommand.substring(3);
+//				}
+//				if (split[1].length() == 2) {
+//					dst = split[1];
+//					msgWithoutCommand = msgWithoutCommand.substring(2);
+//				}
+//			}
+//			if (src == null || dst == null) {
+//				sendMsg("!tr <quelle> <ziel> <text>");
+//			} else {
+//				final String translate = tts.translate(src, dst, msgWithoutCommand);
+//				if (translate != null && translate.isEmpty() == false) {
+//					sendMsg(translate);
+//				}
+//				boolean known = tts.isKnownLanguage(dst);
+//				if (known) {
+//					try {
+//						tts.syntesizeAndPlay(translate, dst, null);
+//					} catch (Exception e) {
+//						log.error(e.getMessage(), e);
+//					}
+//				}
+//			}
+//		}
 
 		playMedia(command);
 	}

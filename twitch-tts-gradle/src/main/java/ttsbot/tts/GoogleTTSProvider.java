@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.threeten.bp.Duration;
 
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.auth.Credentials;
@@ -93,6 +94,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 		super();
 		try {
 			this.credentials = loadCredentials("google-credentials.json");
+
 		} catch (IOException e) {
 			log.warn(e.getMessage(), e);
 			throw e;
@@ -101,7 +103,16 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 
 	@Override
 	public String getName() {
-		return "Google TTS";
+		return "google";
+	}
+
+	@Override
+	public boolean isAvailable() {
+		Collection<String> listSupportedVoices = listSupportedVoices(DEFAULT_LANG);
+		if (listSupportedVoices.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -168,24 +179,6 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 	public boolean setVolume(float volume) {
 		if (volume >= -96 && volume <= 16) {
 			this.volume = volume;
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean setSpeakingRate(double speakingRate) {
-		this.speakingRate = speakingRate;
-		if (this.speakingRate < 0.25) {
-			this.speakingRate = 0;
-			return false;
-		}
-		return true;
-	}
-
-	public boolean setPitch(int value) {
-		if (value >= -20 && value <= 20) {
-			pitch = value;
 			return true;
 		}
 		return false;
@@ -316,7 +309,7 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 			List<Voice> listAllSupportedVoices = listAllSupportedVoices(lang);
 			listAllSupportedVoices.stream().forEach(v -> voiceNames.add(v.getName()));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 
 		return voiceNames;
@@ -330,6 +323,9 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 
 		final Builder b = TextToSpeechSettings.newBuilder();
 		b.setCredentialsProvider(this);
+		com.google.api.gax.rpc.UnaryCallSettings.Builder<ListVoicesRequest, ListVoicesResponse> listVoicesSettings = b
+				.listVoicesSettings();
+		listVoicesSettings.setSimpleTimeoutNoRetries(Duration.ofSeconds(3));
 
 		try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create(b.build())) {
 			// Builds the text to speech list voices request
@@ -354,6 +350,8 @@ public class GoogleTTSProvider implements CredentialsProvider, TTSProvider {
 //				}
 
 			}
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 		return voicesForLanguage;
 	}

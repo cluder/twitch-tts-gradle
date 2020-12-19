@@ -15,7 +15,7 @@ import ttsbot.ui.SwingUI;
  */
 public class TTSBotMain {
 	private final static Logger log = LoggerFactory.getLogger(TTSBotMain.class);
-	public static String VERSION = "2";
+	public static String VERSION = "3";
 
 	SwingUI ui;
 

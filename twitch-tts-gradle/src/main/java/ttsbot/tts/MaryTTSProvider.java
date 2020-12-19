@@ -5,8 +5,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.sound.sampled.AudioInputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
 import com.google.common.collect.Lists;
@@ -17,16 +21,16 @@ import marytts.exceptions.MaryConfigurationException;
 import ttsbot.util.Utils;
 
 public class MaryTTSProvider implements TTSProvider {
+	private final static Logger log = LoggerFactory.getLogger(MaryTTSProvider.class);
+
 	public static final String DEFAULT_LANG = "de";
 	public static final String DEFAULT_VOICE = "bits1-hsmm";
 
 	private String lang = DEFAULT_LANG;
 	private String preferredVoice = "";
 
-	protected List<String> knownLanguages = Lists.newArrayList(//
-			"de", //
-			"en-US");
-	protected Set<TTSFeature> knownFeatures = EnumSet.of(TTSFeature.VOLUME);
+	protected List<String> knownLanguages = Lists.newArrayList();
+	protected Set<TTSFeature> knownFeatures = EnumSet.noneOf(TTSFeature.class);
 
 	MaryInterface marytts;
 
@@ -40,7 +44,16 @@ public class MaryTTSProvider implements TTSProvider {
 
 	@Override
 	public String getName() {
-		return "MaryTTS";
+		return "mary";
+	}
+
+	@Override
+	public boolean isAvailable() {
+		Collection<String> listSupportedVoices = listSupportedVoices(DEFAULT_LANG);
+		if (listSupportedVoices.isEmpty()) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -66,11 +79,15 @@ public class MaryTTSProvider implements TTSProvider {
 	}
 
 	public List<String> getKnownLanguages() {
+		if (knownLanguages.isEmpty()) {
+			knownLanguages = marytts.getAvailableLocales().stream().map(l -> l.toLanguageTag())
+					.collect(Collectors.toList());
+		}
 		return knownLanguages;
 	}
 
 	public boolean isKnownLanguage(String dst) {
-		for (String lang : knownLanguages) {
+		for (String lang : getKnownLanguages()) {
 			if (lang.startsWith(dst)) {
 				return true;
 			}
@@ -90,18 +107,6 @@ public class MaryTTSProvider implements TTSProvider {
 	@Override
 	public boolean isSupported(TTSFeature f) {
 		return knownFeatures.contains(f);
-	}
-
-	@Override
-	public double getPitch() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public boolean setPitch(int value) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override
@@ -140,18 +145,6 @@ public class MaryTTSProvider implements TTSProvider {
 	}
 
 	@Override
-	public double getSpeakingRate() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public boolean setSpeakingRate(double value) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public void syntesizeAndPlay(String value) throws Exception {
 		syntesizeAndPlay(value, null, null);
 	}
@@ -160,6 +153,7 @@ public class MaryTTSProvider implements TTSProvider {
 	public void syntesizeAndPlay(String text, String langOverride, SsmlVoiceGender genderOverride) throws Exception {
 		marytts.setLocale(Locale.forLanguageTag(lang));
 		marytts.setVoice(preferredVoice);
+
 		AudioInputStream audio = marytts.generateAudio(text);
 
 		Utils.playAudio(audio, volume);
